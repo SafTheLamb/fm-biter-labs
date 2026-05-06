@@ -1,0 +1,15 @@
+ -[x] Add technologies to the queue
+ -[ ] Move functionality for calculating research amount to tq_lib
+ -[ ] Pick random technology with sqrt(rand()) weighting to research
+ -[ ] Calculate how much to progress the tech based on research cost
+ -[ ] Account for research time in the progress amount
+ -[ ] Move kill management to its own lib
+ -[ ] Hide the lab
+ -[ ] Create the "lab" chest
+ -[ ] Keep track of placed "labs" and their science packs
+ -[ ] Tally kills on labs and apply research every N ticks instead of on each kill
+ -[ ] Determine best "lab" to research from, based on killing entity
+ -[ ] Optimize "find nearby labs" by making the distance REALLY small and store nearby labs per turret
+ -[ ] Depreciate research value from units the more kills the force has
+ -[ ] Weigh research value by unit health
+ -[ ] Also listen to worm kills, nests, etc
