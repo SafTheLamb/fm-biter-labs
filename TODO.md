@@ -1,4 +1,5 @@
  -[x] Add technologies to the queue
+ -[x] Create the science altar
  -[ ] Move functionality for calculating research amount to tq_lib
  -[ ] Pick random technology with sqrt(rand()) weighting to research
  -[ ] Each kill produces 1 science blip, but 1 unit of research requires 1 blip PER INGREDIENT.
@@ -7,7 +8,7 @@
  -[ ] Account for research time in the progress amount
  -[ ] Move kill management to its own lib
  -[ ] Hide the lab
- -[x] Create the science altar
+ -[ ] Handle infinite / multi-level techs
  -[ ] Keep track of placed altars and their science packs
  -[ ] Tally kills on labs and apply research every N ticks instead of on each kill
  -[ ] Determine best altar to research from, based on killing entity

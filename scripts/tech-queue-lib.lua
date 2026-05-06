@@ -27,8 +27,7 @@ tq_lib.events[defines.events.on_force_created] = function(e)
 	tq_lib.init_force(e.force)
 end
 
--------------------------------------------------------------------------------
--- Queueing techs
+------------------------------------------------------------------------------- Queue
 
 function tq_lib.is_valid_tech(tech_name)
 	assert(type(tech_name) == "string")
@@ -64,8 +63,20 @@ function tq_lib.try_queue_tech(tech)
 	return true
 end
 
--------------------------------------------------------------------------------
--- Researching
+function tq_lib.try_dequeue_tech(tech)
+	local tech_queue = storage.tech_queue[tech.force.index]
+	for i,tech_data in ipairs(tech_queue) do
+		if tech_data.name == tech.name then
+			local kills = tech_data.kills
+			table.remove(tech_queue, i)
+			return kills
+		end
+	end
+	return false
+end
+
+------------------------------------------------------------------------------- Researching
+-- Blips
 
 function tq_lib.get_random_tech_index(force)
 	local tech_queue = storage.tech_queue[force.index]
@@ -87,15 +98,26 @@ function tq_lib.get_tech(force, tech_id)
 	end
 end
 
+function tq_lib.progress_tech(tech, blips)
+	local new_progress = tech.saved_progress + blips
+
+	if new_progress >= 1 then
+		tq_lib.research_tech(tech)
+		tech.saved_progress = 0
+	else
+		tech.saved_progress = new_progress
+	end
+end
+
 function tq_lib.research_tech(tech)
 	local player_force = tech.force
-	local tech_queue = storage.tech_queue[player_force.index]
 
-	for i,tech_data in ipairs(tech_queue) do
-		if tech_data.name == tech.name then
-			player_force.print("[tech="..tech.name.."] researched after "..tech_data.kills.." kills.")
-			table.remove(tech_queue, i)
-			break
+	local kills = tq_lib.try_dequeue_tech(tech)
+	if type(kills) == "number" then
+		if kills == 1 then
+			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, {tech.name})
+		else
+			player_force.print({"biter-labs-ui.technology-researched", tech.name, kills})
 		end
 	end
 
@@ -107,25 +129,31 @@ function tq_lib.research_tech(tech)
 end
 
 -------------------------------------------------------------------------------
--- Never let players queue technologies
 
 tq_lib.events[defines.events.on_research_started] = function(e)
+	-- Never let players queue technologies
 	local player_force = e.research.force
 	player_force.research_queue = nil
-	player_force.print("Nope.")
+	player_force.print({"biter-labs-ui.research-queue-disabled"})
 end
 
 tq_lib.events[defines.events.on_research_queued] = function(e)
+	-- Never let players queue technologies
 	e.force.research_queue = nil
 end
 
 tq_lib.events[defines.events.on_research_finished] = function(e)
-	game.print("FINISHED!")
+	tq_lib.try_dequeue_tech(e.research)
 	for _,successor in pairs(e.research.successors or {}) do
 		tq_lib.try_queue_tech(successor)
 	end
 end
 
--- TODO: Handle on_research_reversed for correctness sake
+tq_lib.events[defines.events.on_research_reversed] = function(e)
+	for _,successor in pairs(e.research.successors or {}) do
+		tq_lib.try_dequeue_tech(successor)
+	end
+	tq_lib.try_queue_tech(e.research)
+end
 
 return tq_lib
