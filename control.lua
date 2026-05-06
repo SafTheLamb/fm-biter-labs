@@ -1,8 +1,10 @@
 local handler = require("__core__.lualib.event_handler")
 
 local tq_lib = require("scripts.tech-queue-lib")
+local altar_lib = require("scripts.science-altar-lib")
 
 handler.add_lib(tq_lib)
+handler.add_lib(altar_lib)
 
 local function on_lab_created(e)
 	if e.entity.name ~= "science-altar" then return end
