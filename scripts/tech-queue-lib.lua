@@ -1,9 +1,10 @@
+local util = require("__core__.lualib.util")
+
 local tq_lib = {
 	events = {}
 }
 
--------------------------------------------------------------------------------
--- Initialization
+------------------------------------------------------------------------------- Initialization
 
 tq_lib.on_init = function()
 	storage.tech_queue = {}
@@ -13,7 +14,11 @@ tq_lib.on_init = function()
 end
 
 function tq_lib.init_force(force)
-	storage.tech_queue[force.index] = {}
+	storage.tech_queue[force.index] = {
+		research_scale = 1,
+		souls_per_blip = 1,
+		queue_sets = {}
+	}
 	local tech_queue = storage.tech_queue[force.index]
 
 	for _,tech in pairs(prototypes.technology) do
@@ -21,6 +26,8 @@ function tq_lib.init_force(force)
 			table.insert(tech_queue, {name=tech.name, kills=0})
 		end
 	end
+
+	tq_lib.reinit_queue_sets(force)
 end
 
 tq_lib.events[defines.events.on_force_created] = function(e)
@@ -75,13 +82,48 @@ function tq_lib.try_dequeue_tech(tech)
 	return false
 end
 
-------------------------------------------------------------------------------- Researching
--- Blips
+------------------------------------------------------------------------------- Queue sets
 
-function tq_lib.get_random_tech_index(force)
+function tq_lib.reinit_queue_sets(force)
 	local tech_queue = storage.tech_queue[force.index]
-	if #tech_queue > 0 then
-		return math.random(#tech_queue)
+	tech_queue.queue_sets = {}
+	for tech_id,tech_data in ipairs(tech_queue) do
+		local tech = force.technologies[tech_data.name]
+		local key = ""
+		for _,ingredient in pairs(tech.research_unit_ingredients) do
+			key = key..ingredient.name..','
+		end
+		if not tech_queue.queue_sets[key] then
+			tech_queue.queue_sets[key] = {tech_id}
+		else
+			table.insert(tech_queue.queue_sets[key], tech_id)
+		end
+	end
+end
+
+------------------------------------------------------------------------------- Researching
+
+function tq_lib.get_random_tech_index(altar)
+	-- TODO: Update to use queue sets
+	local tech_queue = storage.tech_queue[altar.force.index]
+	local valid_tech_ids = {}
+	for set_ingredients,queue_set in pairs(tech_queue.queue_sets) do
+		local ingredients = util.split(set_ingredients, ',')
+		for _,ingredient_name in pairs(ingredients) do
+			if altar.get_item_count(ingredient_name) == 0 then
+				goto continue
+			end
+		end
+
+		for _,tech_id in pairs(queue_set) do
+			table.insert(valid_tech_ids, tech_id)
+		end
+
+		::continue::
+	end
+
+	if #valid_tech_ids > 0 then
+		return valid_tech_ids[math.random(#valid_tech_ids)]
 	end
 	return nil
 end
@@ -99,6 +141,7 @@ function tq_lib.get_tech(force, tech_id)
 end
 
 function tq_lib.progress_tech(tech, blips)
+	-- TODO: Convert from blips to progress
 	local new_progress = tech.saved_progress + blips
 
 	if new_progress >= 1 then
@@ -114,10 +157,13 @@ function tq_lib.research_tech(tech)
 
 	local kills = tq_lib.try_dequeue_tech(tech)
 	if type(kills) == "number" then
+		local print_settings = {
+			sound_path = "utility/research_completed"
+		}
 		if kills == 1 then
-			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, {tech.name})
+			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, {tech.name}, print_settings)
 		else
-			player_force.print({"biter-labs-ui.technology-researched", tech.name, kills})
+			player_force.print({"biter-labs-ui.technology-researched", tech.name, kills}, print_settings)
 		end
 	end
 
@@ -128,7 +174,11 @@ function tq_lib.research_tech(tech)
 	end
 end
 
--------------------------------------------------------------------------------
+function tq_lib.get_souls_per_blip(force)
+	return 10
+end
+
+------------------------------------------------------------------------------- Research queue
 
 tq_lib.events[defines.events.on_research_started] = function(e)
 	-- Never let players queue technologies
@@ -147,6 +197,7 @@ tq_lib.events[defines.events.on_research_finished] = function(e)
 	for _,successor in pairs(e.research.successors or {}) do
 		tq_lib.try_queue_tech(successor)
 	end
+	tq_lib.reinit_queue_sets(e.research.force)
 end
 
 tq_lib.events[defines.events.on_research_reversed] = function(e)
@@ -154,6 +205,9 @@ tq_lib.events[defines.events.on_research_reversed] = function(e)
 		tq_lib.try_dequeue_tech(successor)
 	end
 	tq_lib.try_queue_tech(e.research)
+	tq_lib.reinit_queue_sets(e.research.force)
 end
+
+-- TODO: Handle technologies being added/removed via on_configuration_changed (use e.migrations?)
 
 return tq_lib

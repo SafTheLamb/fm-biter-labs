@@ -2,23 +2,34 @@ local handler = require("__core__.lualib.event_handler")
 
 local tq_lib = require("scripts.tech-queue-lib")
 local altar_lib = require("scripts.science-altar-lib")
+local ts_lib = require("scripts.tech-souls-lib")
 
 handler.add_lib(tq_lib)
 handler.add_lib(altar_lib)
+handler.add_lib(ts_lib)
 
 local function on_lab_created(e)
-	if e.entity.name ~= "science-altar" then return end
+	if e.entity.name == "science-altar" then
+		altar_lib.add_altar(e.entity)
+	end
 end
 
 local function on_lab_destroyed(e)
+	-- TODO: Allow souls to be acquired from 
 	if e.entity.name ~= "science-altar" then return end
 
-	if e.entity.force ~= e.force then
-		if e.cause and e.cause.type == "character" then
-			-- TODO: Give the killing player the stored souls
-		end
-
+	if e.damage_type then
+		game.print(e.damage_type.name)
 	end
+
+	if e.cause then
+		local altar_data = altar_lib.get_altar_data(e.entity)
+		if altar_data then
+			local player_altar_data = altar_lib.get_altar_data(e.cause)
+			ts_lib.give_souls_from_kill(player_altar_data, altar_data.souls)
+		end
+	end
+	altar_lib.remove_altar(e.entity)
 end
 
 ------------------------------------------------------------------------------- Death event
@@ -33,12 +44,13 @@ local function on_entity_died(e)
 	end
 
 	if not player_force.is_friend(e.entity.force) then
-		local tech_id = tq_lib.get_random_tech_index(player_force)
-		if tech_id then
-			local tech = tq_lib.get_tech(player_force, tech_id)
-			tq_lib.progress_tech(tech, 1 / tech.research_unit_count)
-		end
-		return
+		ts_lib.add_souls_from_kill(player_force, e.cause, e.entity, 1)
+		-- local tech_id = tq_lib.get_random_tech_index(player_force)
+		-- if tech_id then
+		-- 	local tech = tq_lib.get_tech(player_force, tech_id)
+		-- 	tq_lib.progress_tech(tech, 1 / tech.research_unit_count)
+		-- end
+		-- return
 	end
 end
 

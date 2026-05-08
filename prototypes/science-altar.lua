@@ -20,8 +20,9 @@ data:extend({
 		name = "science-altar",
 		energy_required = 2,
 		ingredients = {
+			{type="item", name="electronic-circuit", amount=10},
 			{type="item", name="stone-brick", amount=10},
-			{type="item", name="light-armor", amount=1}
+			{type="item", name="firearm-magazine", amount=5}
 		},
 		results = {{type="item", name="science-altar", amount=1}}
 	},
@@ -29,7 +30,7 @@ data:extend({
 		type = "lab",
 		name = "science-altar",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
-		flags = {"placeable-player", "player-creation"},
+		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
 		minable = {mining_time = 1, result = "science-altar"},
 		max_health = 250,
 		corpse = "lab-remnants",
