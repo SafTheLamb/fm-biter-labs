@@ -4,26 +4,6 @@ local ts_lib = {
 	events = {}
 }
 
-------------------------------------------------------------------------------- Initialization
-
--- ts_lib.on_init = function()
--- 	storage.tech_souls = {}
--- 	for _,force in pairs(game.forces) do
--- 		ts_lib.init_force(force)
--- 	end
--- end
-
--- function ts_lib.init_force(force)
--- 	storage.tech_souls[force.index] = {
--- 		total_science = 0,
--- 		science_scale = 1
--- 	}
--- end
-
--- ts_lib.events[defines.events.on_force_created] = function(e)
--- 	ts_lib.init_force(e.force)
--- end
-
 ------------------------------------------------------------------------------- Death
 
 function ts_lib.give_souls_from_kill(altar_data, souls)

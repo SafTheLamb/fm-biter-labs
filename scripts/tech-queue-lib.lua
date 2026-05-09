@@ -21,7 +21,7 @@ function tq_lib.init_force(force)
 	local tech_queue = storage.tech_queue[force.index]
 
 	for _,tech in pairs(prototypes.technology) do
-		if not next(tech.prerequisites) and tq_lib.is_valid_tech(tech.name) then
+		if not next(tech.prerequisites) and tq_lib.is_valid_tech(tech) then
 			table.insert(tech_queue, {name=tech.name, kills=0})
 		end
 	end
@@ -35,11 +35,8 @@ end
 
 ------------------------------------------------------------------------------- Queue
 
-function tq_lib.is_valid_tech(tech_name)
-	assert(type(tech_name) == "string")
-	local tech_prototype = prototypes.technology[tech_name]
-	assert(tech_prototype)
-	if tech_prototype.research_trigger then
+function tq_lib.is_valid_tech(tech)
+	if prototypes.technology[tech.name].research_trigger then
 		return false
 	end
 	return true
@@ -49,7 +46,7 @@ function tq_lib.try_queue_tech(tech)
 	assert(tech)
 	local tech_queue = storage.tech_queue[tech.force.index]
 
-	if not tq_lib.is_valid_tech(tech.name) then
+	if not tq_lib.is_valid_tech(tech) or tech.researched then
 		return false
 	end
 
@@ -128,17 +125,40 @@ function tq_lib.get_random_tech_index(altar)
 	return nil
 end
 
+function tq_lib.get_top_tech_ids(force, count)
+	local leaderboard = {}
+	local queue_copy = util.table.deepcopy(storage.tech_queue[force.index])
+	for i=1,count do
+		local top_progress = 0
+		local top_id = 0
+		for tech_id,tech_data in pairs(queue_copy) do
+			if type(tech_id) == "number" then
+				local tech = force.technologies[tech_data.name]
+				if tech.saved_progress > top_progress then
+					top_progress = tech.saved_progress
+					top_id = tech_id
+				end
+			end
+		end
+		if top_id > 0 then
+			table.insert(leaderboard, top_id)
+			queue_copy[top_id] = nil
+		end
+	end
+	return leaderboard
+end
+
 function tq_lib.get_tech_data(force, tech_id)
 	return storage.tech_queue[force.index][tech_id]
 end
 
-function tq_lib.progress_tech(tech, normalized_blips)
+function tq_lib.progress_tech(tech, blips)
 	-- TODO: Convert from blips to progress
-	local new_progress = tech.saved_progress + normalized_blips
+	local new_progress = tech.saved_progress + blips / tech.research_unit_count
 
 	local tech_queue = storage.tech_queue[tech.force.index]
-	tech_queue.souls_per_blip = tech_queue.souls_per_blip + normalized_blips
-	
+	tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * blips
+
 	if new_progress >= 1 then
 		tq_lib.research_tech(tech)
 		tech.saved_progress = 0
@@ -174,7 +194,7 @@ function tq_lib.get_souls_per_blip(force)
 	return storage.tech_queue[force.index].souls_per_blip
 end
 
-------------------------------------------------------------------------------- Research queue
+------------------------------------------------------------------------------- Events
 
 tq_lib.events[defines.events.on_research_started] = function(e)
 	-- Never let players queue technologies
@@ -204,9 +224,43 @@ tq_lib.events[defines.events.on_research_reversed] = function(e)
 	tq_lib.reinit_queue_sets(e.research.force)
 end
 
--- tq_lib.on_configuration_changed = function(e)
--- 	tq_lib.reinit_queue_sets(e.research.force)
--- end
+tq_lib.on_configuration_changed = function(e)
+	for _,force in pairs(game.forces) do
+		local tech_queue = storage.tech_queue[force.index]
+		local old_kills = {}
+		for _,tech_data in ipairs(tech_queue) do
+			old_kills[tech_data.name] = tech_data.kills
+		end
+
+		tech_queue = {
+			souls_per_blip = 5,
+			queue_sets = {}
+		}
+
+		for _,tech in pairs(force.technologies) do
+			if tq_lib.is_valid_tech(tech) then
+				if tech.researched then
+					tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.research_unit_count
+					goto continue
+				end
+				for _,prerequisite in pairs(tech.prerequisites or {}) do
+					if not prerequisite.researched then
+						-- This would cause tracked kills to be lost
+						tech.saved_progress = 0
+						goto continue
+					end
+				end
+				tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.saved_progress * tech.research_unit_count
+				table.insert(tech_queue, {
+					name = tech.name,
+					kills = old_kills[tech.name] or 0
+				})
+			end
+			::continue::
+		end
+		tq_lib.reinit_queue_sets(force)
+	end
+end
 
 -- TODO: Handle technologies being added/removed via on_configuration_changed (use e.migrations?)
 

@@ -163,7 +163,7 @@ function altar_lib.update_altar(altar_data, altar)
 
 				local kills = altar_data.kills * unit_amount * tech_blips / blips
 				tech_data.kills = tech_data.kills + kills
-				tq_lib.progress_tech(tech, unit_amount / tech.research_unit_count)
+				tq_lib.progress_tech(tech, unit_amount)
 				altar_data.kills = altar_data.kills - kills
 				altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
 				

@@ -3,10 +3,12 @@ local handler = require("__core__.lualib.event_handler")
 local tq_lib = require("scripts.tech-queue-lib")
 local altar_lib = require("scripts.science-altar-lib")
 local ts_lib = require("scripts.tech-souls-lib")
+local tu_lib = require("scripts.tech-ui-lib")
 
 handler.add_lib(tq_lib)
 handler.add_lib(altar_lib)
 handler.add_lib(ts_lib)
+handler.add_lib(tu_lib)
 
 local function on_lab_created(e)
 	if e.entity.name == "science-altar" then
@@ -15,7 +17,6 @@ local function on_lab_created(e)
 end
 
 local function on_lab_destroyed(e)
-	-- TODO: Allow souls to be acquired from 
 	if e.entity.name ~= "science-altar" then return end
 
 	if e.damage_type then
