@@ -206,6 +206,7 @@ end
 tq_lib.events[defines.events.on_research_queued] = function(e)
 	-- Never let players queue technologies
 	e.force.research_queue = nil
+	e.force.print({"biter-labs-ui.research-queue-disabled"})
 end
 
 tq_lib.events[defines.events.on_research_finished] = function(e)

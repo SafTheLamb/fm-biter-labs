@@ -1,4 +1,5 @@
 local altar_lib = require("__biter-labs__.scripts.science-altar-lib")
+local tq_lib = require("__biter-labs__.scripts.tech-queue-lib")
 
 local ts_lib = {
 	events = {}
@@ -23,32 +24,38 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 		end
 	end
 
-	entity.surface.create_particle{
-		name = "soul-leaving",
-		position = entity.position,
-		height = 0,
-		movement = {
-			0.1 - 0.2 * math.random(),
-			0
-		},
-		vertical_speed = 0.1,
-		frame_speed = 0.8 + math.random()
-	}
-
 	local souls = entity.max_health ^ 0.75
-	if altar and altar_data then
-		local offset = {
-			x = 1.5 - 3 * math.random(),
-			y = 1.5 - 3 * math.random()
-		}
-		altar.surface.create_particle{
-			name = "soul-collecting",
-			position = {altar.position.x + offset.x, altar.position.y + offset.y},
-			height = 2,
-			movement = {-offset.x * 0.05, -offset.y * 0.05},
-			vertical_speed = 0,
+
+	local num_particles = math.max(math.sqrt(souls / tq_lib.get_souls_per_blip()), 1)
+	for i=1,num_particles do
+		entity.surface.create_particle{
+			name = "soul-leaving",
+			position = entity.position,
+			height = 0,
+			movement = {
+				0.1 - 0.2 * math.random(),
+				0
+			},
+			vertical_speed = 0.1,
 			frame_speed = 0.8 + math.random()
 		}
+	end
+
+	if altar and altar_data then
+		for i=1,num_particles do
+			local offset = {
+				x = 1.5 - 3 * math.random(),
+				y = 1.5 - 3 * math.random()
+			}
+			altar.surface.create_particle{
+				name = "soul-collecting",
+				position = {altar.position.x + offset.x, altar.position.y + offset.y},
+				height = 2,
+				movement = {-offset.x * 0.05, -offset.y * 0.05},
+				vertical_speed = 0,
+				frame_speed = 0.8 + math.random()
+			}
+		end
 		ts_lib.give_souls_from_kill(altar_data, souls * damage_scale * altar_scale)
 	end
 end

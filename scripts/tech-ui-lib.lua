@@ -10,8 +10,8 @@ local tu_lib = {
 function tu_lib.open_tech_leaderboard(player)
 	assert(player.gui.goal["biter-labs-tech-leaderboard"] == nil)
 	local leaderboard = player.gui.center.add{type="flow", name="biter-labs-tech-leaderboard", direction="vertical"}
-	leaderboard.style.width = 0.9 * player.display_resolution.width
-	leaderboard.style.height = 0.9 * player.display_resolution.height
+	leaderboard.style.width = 0.95 * player.display_resolution.width
+	leaderboard.style.height = 0.95 * player.display_resolution.height
 	leaderboard.style.horizontal_align = "center"
 	leaderboard.style.vertical_align = "top"
 	leaderboard.location = {0,0}
