@@ -44,13 +44,8 @@ local function on_entity_died(e)
 	end
 
 	if not player_force.is_friend(e.entity.force) then
+		local damage_scale = e.damage_type == "explosion" and 0.5 or 1
 		ts_lib.add_souls_from_kill(player_force, e.cause, e.entity, 1)
-		-- local tech_id = tq_lib.get_random_tech_index(player_force)
-		-- if tech_id then
-		-- 	local tech = tq_lib.get_tech(player_force, tech_id)
-		-- 	tq_lib.progress_tech(tech, 1 / tech.research_unit_count)
-		-- end
-		-- return
 	end
 end
 
