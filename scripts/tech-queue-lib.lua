@@ -15,8 +15,7 @@ end
 
 function tq_lib.init_force(force)
 	storage.tech_queue[force.index] = {
-		research_scale = 1,
-		souls_per_blip = 1,
+		souls_per_blip = 5,
 		queue_sets = {}
 	}
 	local tech_queue = storage.tech_queue[force.index]
@@ -123,7 +122,8 @@ function tq_lib.get_random_tech_index(altar)
 	end
 
 	if #valid_tech_ids > 0 then
-		return valid_tech_ids[math.random(#valid_tech_ids)]
+		local tech_id = valid_tech_ids[math.random(#valid_tech_ids)]
+		return tech_id
 	end
 	return nil
 end
@@ -132,10 +132,13 @@ function tq_lib.get_tech_data(force, tech_id)
 	return storage.tech_queue[force.index][tech_id]
 end
 
-function tq_lib.progress_tech(tech, blips)
+function tq_lib.progress_tech(tech, normalized_blips)
 	-- TODO: Convert from blips to progress
-	local new_progress = tech.saved_progress + blips
+	local new_progress = tech.saved_progress + normalized_blips
 
+	local tech_queue = storage.tech_queue[tech.force.index]
+	tech_queue.souls_per_blip = tech_queue.souls_per_blip + normalized_blips
+	
 	if new_progress >= 1 then
 		tq_lib.research_tech(tech)
 		tech.saved_progress = 0
@@ -154,7 +157,7 @@ function tq_lib.research_tech(tech)
 		}
 		kills = math.max(math.floor(kills + 0.5), 1)
 		if kills == 1 then
-			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, {tech.name}, print_settings)
+			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, print_settings)
 		else
 			player_force.print({"biter-labs-ui.technology-researched", tech.name, kills}, print_settings)
 		end
@@ -168,7 +171,7 @@ function tq_lib.research_tech(tech)
 end
 
 function tq_lib.get_souls_per_blip(force)
-	return 10
+	return storage.tech_queue[force.index].souls_per_blip
 end
 
 ------------------------------------------------------------------------------- Research queue
@@ -200,6 +203,10 @@ tq_lib.events[defines.events.on_research_reversed] = function(e)
 	tq_lib.try_queue_tech(e.research)
 	tq_lib.reinit_queue_sets(e.research.force)
 end
+
+-- tq_lib.on_configuration_changed = function(e)
+-- 	tq_lib.reinit_queue_sets(e.research.force)
+-- end
 
 -- TODO: Handle technologies being added/removed via on_configuration_changed (use e.migrations?)
 

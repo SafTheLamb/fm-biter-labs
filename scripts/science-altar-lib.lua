@@ -148,19 +148,29 @@ function altar_lib.update_altar(altar_data, altar)
 		if tech_id then
 			local tech_data = tq_lib.get_tech_data(altar.force, tech_id)
 			local tech = altar.force.technologies[tech_data.name]
-			local tech_blips = #tech.research_unit_ingredients
+			local tech_blips = 0
+			for _,ingredient in pairs(tech.research_unit_ingredients) do
+				tech_blips = tech_blips + ingredient.amount
+			end
+
 			if blips >= tech_blips then
-				local unit_amount = math.floor(math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count))
-				-- TODO: track kills?
+				local unit_amount = math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count)
+				for _,ingredient in pairs(tech.research_unit_ingredients) do
+					unit_amount = math.min(unit_amount, altar.get_item_count(ingredient.name) / ingredient.amount)
+				end
+				unit_amount = math.floor(unit_amount)
+				if unit_amount == 0 then return end
+
 				local kills = altar_data.kills * unit_amount * tech_blips / blips
 				tech_data.kills = tech_data.kills + kills
 				tq_lib.progress_tech(tech, unit_amount / tech.research_unit_count)
 				altar_data.kills = altar_data.kills - kills
+				altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
+				
 				for _,ingredient in pairs(tech.research_unit_ingredients) do
 					-- BUG: blip cost does not account for ingredients with >1... it's used very rarely anyway
-					altar.remove_item({name=ingredient.name, amount=unit_amount})
+					altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
 				end
-				altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
 			end
 		end
 	end

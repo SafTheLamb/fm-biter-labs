@@ -15,6 +15,6 @@
  -[x] Tally kills on researches
  -[x] Determine best altar to research from, based on killing entity
  -[ ] Optimize "find nearby altar" by making the distance REALLY small and store nearby altars per turret
- -[ ] Depreciate research value from units the more research the force has
+ -[x] Depreciate research value from units the more research the force has
  -[x] Weigh research value by unit health
  -[x] Also listen to worm kills, nests, etc
