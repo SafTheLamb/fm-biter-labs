@@ -128,16 +128,8 @@ function tq_lib.get_random_tech_index(altar)
 	return nil
 end
 
-function tq_lib.get_tech(force, tech_id)
-	if type(tech_id) == "number" then
-		local tech_queue = storage.tech_queue[force.index]
-		return force.technologies[tech_queue[tech_id].name]
-	elseif type(tech_id) == "string" then
-		return force.technologies[tech_id]
-	else
-		assert(type(tech_id) ~= "nil")
-		return tech_id
-	end
+function tq_lib.get_tech_data(force, tech_id)
+	return storage.tech_queue[force.index][tech_id]
 end
 
 function tq_lib.progress_tech(tech, blips)
@@ -160,6 +152,7 @@ function tq_lib.research_tech(tech)
 		local print_settings = {
 			sound_path = "utility/research_completed"
 		}
+		kills = math.max(math.floor(kills + 0.5), 1)
 		if kills == 1 then
 			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, {tech.name}, print_settings)
 		else

@@ -126,7 +126,12 @@ altar_lib.on_nth_tick[60] = function(e)
 
 		for _,surface in pairs(game.surfaces) do
 			for unit_number,altar_data in pairs(force_altars[surface.index]) do
-				altar_lib.update_altar(altar_data, game.get_entity_by_unit_number(unit_number))
+				local altar = game.get_entity_by_unit_number(unit_number)
+				if not altar then
+					force_altars[surface.index][unit_number] = nil
+					break
+				end
+				altar_lib.update_altar(altar_data, altar)
 			end
 		end
 
@@ -141,16 +146,21 @@ function altar_lib.update_altar(altar_data, altar)
 	if blips > 0 then
 		local tech_id = tq_lib.get_random_tech_index(altar)
 		if tech_id then
-			local tech = tq_lib.get_tech(altar.force, tech_id)
+			local tech_data = tq_lib.get_tech_data(altar.force, tech_id)
+			local tech = altar.force.technologies[tech_data.name]
 			local tech_blips = #tech.research_unit_ingredients
 			if blips >= tech_blips then
+				local unit_amount = math.floor(math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count))
 				-- TODO: track kills?
-				tq_lib.progress_tech(tech, 1 / tech.research_unit_count, 0)
+				local kills = altar_data.kills * unit_amount * tech_blips / blips
+				tech_data.kills = tech_data.kills + kills
+				tq_lib.progress_tech(tech, unit_amount / tech.research_unit_count)
+				altar_data.kills = altar_data.kills - kills
 				for _,ingredient in pairs(tech.research_unit_ingredients) do
 					-- BUG: blip cost does not account for ingredients with >1... it's used very rarely anyway
-					altar.remove_item({name=ingredient.name, amount=1})
+					altar.remove_item({name=ingredient.name, amount=unit_amount})
 				end
-				altar_data.souls = altar_data.souls - tech_blips * souls_per_blip
+				altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
 			end
 		end
 	end

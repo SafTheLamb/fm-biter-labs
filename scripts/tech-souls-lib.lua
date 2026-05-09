@@ -36,7 +36,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 	local altar_data,altar_scale = killer and altar_lib.get_altar_data(killer) or nil,1
 	local altar = killer
 	if not altar_data then
-		local altars = entity.surface.find_entities_filtered{force=force, position=entity.position, radius=32, type="lab", name="science-altar"}
+		local altars = entity.surface.find_entities_filtered{force=force, position=(killer or entity).position, radius=32, type="lab", name="science-altar"}
 		if next(altars) then
 			altar = altars[math.random(#altars)]
 			altar_data = altar_lib.get_altar_data(altar)
@@ -55,7 +55,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 		frame_speed = 0.8 + math.random()
 	}
 
-	local souls = math.sqrt(entity.max_health)
+	local souls = entity.max_health ^ 0.75
 	if altar and altar_data then
 		local offset = {
 			x = 1.5 - 3 * math.random(),
