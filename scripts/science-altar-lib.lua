@@ -115,17 +115,14 @@ end
 
 altar_lib.on_nth_tick[60] = function(e)
 	for _,player in pairs(game.players) do
-		if player.character then
-			local player_altar_data = storage.science_altars.players[player.index]
-			local success = altar_lib.update_altar(player_altar_data, player.character)
-			if not success then
-				local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
-				if next(altars) then
-					local altar = altars[math.random(#altars)]
-					local altar_data = altar_lib.get_altar_data(altar)
-					altar_data.souls = altar_data.souls + player_altar_data.souls
-					player_altar_data.souls = 0
-				end
+		local player_altar_data = storage.science_altars.players[player.index]
+		if player.character and player_altar_data.souls > 0 then
+			local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
+			if next(altars) then
+				local altar = altars[math.random(#altars)]
+				local altar_data = altar_lib.get_altar_data(altar)
+				altar_data.souls = altar_data.souls + player_altar_data.souls
+				player_altar_data.souls = 0
 			end
 		end
 	end
