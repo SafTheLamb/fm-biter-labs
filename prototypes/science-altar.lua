@@ -143,7 +143,7 @@ data:extend({
 		},
 	},
 	{
-		type = "remnants",
+		type = "corpse",
 		name = "science-altar-remnants",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-neutral", "not-on-map"},
