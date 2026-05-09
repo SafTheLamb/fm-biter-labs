@@ -33,7 +33,7 @@ data:extend({
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
 		minable = {mining_time = 1, result = "science-altar"},
 		max_health = 250,
-		corpse = "lab-remnants",
+		corpse = "science-altar-remnants",
 		dying_explosion = "lab-explosion",
 		collision_box = {{-1.2, -1.2}, {1.2, 1.2}},
 		selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
@@ -141,5 +141,31 @@ data:extend({
 			{inventory_index = defines.inventory.lab_modules, shift = {0, 0.9}},
 			{inventory_index = defines.inventory.lab_input, shift = {0, 0}, max_icons_per_row = 4, separation_multiplier = 1/1.1}
 		},
+	},
+	{
+		type = "remnants",
+		name = "science-altar-remnants",
+		icon = "__biter-labs__/graphics/icons/science-altar.png",
+		flags = {"placeable-neutral", "not-on-map"},
+		hidden_in_factoriopedia = true,
+		subgroup = "production-machine-remnants",
+		order = "a-g-a",
+		selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
+		tile_width = 3,
+		tile_height = 3,
+		selectable_in_game = false,
+		time_before_removed = 60 * 60 * 15, -- 15 minutes
+		expires = false,
+		final_render_layer = "remnants",
+		remove_on_tile_placement = false,
+		animation = make_rotated_animation_variations_from_sheet (2, {
+			filename = "__biter-labs__/graphics/entity/science-altar/remnants.png",
+			line_length = 1,
+			width = 266,
+			height = 196,
+			direction_count = 1,
+			shift = util.by_pixel(7, 5.5),
+			scale = 0.5
+		})
 	}
 })
