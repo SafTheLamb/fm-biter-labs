@@ -26,7 +26,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 
 	local souls = entity.max_health ^ 0.75
 
-	local num_particles = math.max(math.sqrt(souls / tq_lib.get_souls_per_blip()), 1)
+	local num_particles = math.max(math.sqrt(souls / tq_lib.get_souls_per_blip(force)), 1)
 	for i=1,num_particles do
 		entity.surface.create_particle{
 			name = "soul-leaving",
