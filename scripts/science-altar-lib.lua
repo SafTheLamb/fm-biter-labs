@@ -116,7 +116,17 @@ end
 altar_lib.on_nth_tick[60] = function(e)
 	for _,player in pairs(game.players) do
 		if player.character then
-			altar_lib.update_altar(storage.science_altars.players[player.index], player.character)
+			local player_altar_data = storage.science_altars.players[player.index]
+			local success = altar_lib.update_altar(player_altar_data, player.character)
+			if not success then
+				local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
+				if next(altars) then
+					local altar = altars[math.random(#altars)]
+					local altar_data = altar_lib.get_altar_data(altar)
+					altar_data.souls = altar_data.souls + player_altar_data.souls
+					player_altar_data.souls = 0
+				end
+			end
 		end
 	end
 
@@ -143,35 +153,36 @@ function altar_lib.update_altar(altar_data, altar)
 	local souls_per_blip = tq_lib.get_souls_per_blip(altar.force)
 	local blips = altar_data.souls / souls_per_blip
 	-- BUG: blips always go towards the lower-ingredient techs... slow down updates to fix
-	if blips > 0 then
-		local tech_id = tq_lib.get_random_tech_index(altar)
-		if tech_id then
-			local tech_data = tq_lib.get_tech_data(altar.force, tech_id)
-			local tech = altar.force.technologies[tech_data.name]
-			local tech_blips = 0
+
+	local tech_id = tq_lib.get_random_tech_index(altar)
+	if tech_id then
+		local tech_data = tq_lib.get_tech_data(altar.force, tech_id)
+		local tech = altar.force.technologies[tech_data.name]
+		local tech_blips = 0
+		for _,ingredient in pairs(tech.research_unit_ingredients) do
+			tech_blips = tech_blips + ingredient.amount
+		end
+		blips = blips * (10*second / tech.research_unit_energy)
+
+		if blips >= tech_blips then
+			local unit_amount = math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count)
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
-				tech_blips = tech_blips + ingredient.amount
+				unit_amount = math.min(unit_amount, altar.get_item_count(ingredient.name) / ingredient.amount)
 			end
+			unit_amount = math.floor(unit_amount)
+			if unit_amount == 0 then return end
 
-			if blips >= tech_blips then
-				local unit_amount = math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count)
-				for _,ingredient in pairs(tech.research_unit_ingredients) do
-					unit_amount = math.min(unit_amount, altar.get_item_count(ingredient.name) / ingredient.amount)
-				end
-				unit_amount = math.floor(unit_amount)
-				if unit_amount == 0 then return end
+			local kills = altar_data.kills * unit_amount * tech_blips / blips
+			tech_data.kills = tech_data.kills + kills
+			tq_lib.progress_tech(tech, unit_amount)
+			altar_data.kills = altar_data.kills - kills
+			altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
 
-				local kills = altar_data.kills * unit_amount * tech_blips / blips
-				tech_data.kills = tech_data.kills + kills
-				tq_lib.progress_tech(tech, unit_amount)
-				altar_data.kills = altar_data.kills - kills
-				altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
-				
-				for _,ingredient in pairs(tech.research_unit_ingredients) do
-					-- BUG: blip cost does not account for ingredients with >1... it's used very rarely anyway
-					altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
-				end
+			for _,ingredient in pairs(tech.research_unit_ingredients) do
+				-- BUG: blip cost does not account for ingredients with >1... it's used very rarely anyway
+				altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
 			end
+			return true
 		end
 	end
 end

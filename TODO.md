@@ -5,7 +5,7 @@
  -[x] Each kill produces 1 science blip, but 1 unit of research requires 1 blip PER INGREDIENT.
 	- i.e. a technology that needs 1 red + 1 green science pack per research unit requires 2 blips per research unit before it's consumed. Science pack must be present for a blip to be stored for consumption.
  -[x] Calculate how much to progress the tech based on research cost
- -[ ] Account for research time in the progress amount
+ -[x] Account for research time in the progress amount
  -[x] Move kill management to its own lib
  -[x] Hide the lab
  -[ ] Handle infinite / multi-level techs
