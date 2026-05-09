@@ -9,6 +9,7 @@
 		"ignore": ["thumbnail.xcf", "**/*.xcf"] 
 	},
 	"dependencies": [
-		"base"
+		"base",
+		"fdsl"
 	]
 }
