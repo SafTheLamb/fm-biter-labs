@@ -61,7 +61,7 @@ function tq_lib.try_queue_tech(tech)
 	end
 
 	for _,queued_data in pairs(tech_queue) do
-		if tech.name == queued_data.name then
+		if type(queued_data) == "table" and tech.name == queued_data.name then
 			return false
 		end
 	end
