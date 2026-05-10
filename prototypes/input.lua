@@ -2,7 +2,7 @@ data:extend({
 	{
 		type = "custom-input",
 		name = "biter-labs-open-research-leaderboard",
-		key_sequence = "ALT + L",
+		key_sequence = "CONTROL + ALT + L",
 		consuming = "game-only",
 		action = "lua"
 	},

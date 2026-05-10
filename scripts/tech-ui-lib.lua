@@ -1,11 +1,12 @@
 local tq_lib = require("__biter-labs__.scripts.tech-queue-lib")
+local ts_lib = require("__biter-labs__.scripts.tech-souls-lib")
 
 local tu_lib = {
 	events = {},
 	on_nth_tick = {}
 }
 
-------------------------------------------------------------------------------- Leaderboard
+------------------------------------------------------------------------------- Initialization
 
 function tu_lib.open_tech_leaderboard(player)
 	if player.gui.screen["biter-labs-research-leaderboard"] then return end
@@ -32,7 +33,7 @@ tu_lib.events[defines.events.on_player_created] = function(e)
 	tu_lib.open_tech_leaderboard(player)
 end
 
-------------------------------------------------------------------------------- 
+------------------------------------------------------------------------------- Leaderboard 
 
 function tu_lib.update_tech_leaderboard(player)
 	local leaderboard = player.gui.screen["biter-labs-research-leaderboard"]
@@ -68,6 +69,7 @@ tu_lib.events["biter-labs-open-research-leaderboard"] = function(e)
 		tu_lib.open_tech_leaderboard(player)
 	end
 end
+
 tu_lib.events[defines.events.on_lua_shortcut] = function(e)
 	if e.prototype_name == "biter-labs-open-research-leaderboard" then
 		local player = game.get_player(e.player_index)
@@ -75,6 +77,42 @@ tu_lib.events[defines.events.on_lua_shortcut] = function(e)
 			tu_lib.close_tech_leaderboard(player)
 		else
 			tu_lib.open_tech_leaderboard(player)
+		end
+	end
+end
+
+------------------------------------------------------------------------------- Soul scouter
+
+function tu_lib.scout_souls(e)
+	if not next(e.entities) then return end
+	local player = game.get_player(e.player_index)
+	if not player.force.technologies["biter-labs-soul-scouter"].researched then return end
+
+	local souls = 0
+	for _,entity in pairs(e.entities) do
+		souls = souls + ts_lib.get_soul_value(entity)
+	end
+
+	player.print({"biter-labs-ui.soul-scouter-reading", #e.entities, math.floor(souls)},
+		{color={1,0,1}, sound=defines.print_sound.never, skip=defines.print_skip.never, game_state=false})
+end
+
+function tu_lib.on_player_selected_area(e)
+	if e.item == "biter-labs-soul-scouter" then
+		tu_lib.scout_souls(e)
+	end
+end
+
+tu_lib.events[defines.events.on_player_selected_area] = tu_lib.on_player_selected_area
+tu_lib.events[defines.events.on_player_alt_selected_area] = tu_lib.on_player_selected_area
+tu_lib.events[defines.events.on_player_reverse_selected_area] = tu_lib.on_player_selected_area
+tu_lib.events[defines.events.on_player_alt_reverse_selected_area] = tu_lib.on_player_selected_area
+
+tu_lib.events[defines.events.on_player_cursor_stack_changed] = function(e)
+	local player = game.get_player(e.player_index)
+	if not player.force.technologies["biter-labs-soul-scouter"].researched then
+		if player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == "biter-labs-soul-scouter" then
+			player.cursor_stack.clear()
 		end
 	end
 end

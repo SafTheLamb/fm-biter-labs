@@ -36,24 +36,20 @@ end
 ------------------------------------------------------------------------------- Death event
 
 local function on_entity_died(e)
-	local player_force = e.force
-	if not (player_force and player_force.research_enabled) then return end
+	if not (e.force and e.force.research_enabled) then return end
 
 	if e.entity.type == "lab" then
 		on_lab_destroyed(e)
 		return
 	end
 
-	if not player_force.is_friend(e.entity.force) then
+	if not e.force.is_friend(e.entity.force) and e.entity.is_military_target then
 		local damage_scale = e.damage_type == "explosion" and 0.5 or 1
-		ts_lib.add_souls_from_kill(player_force, e.cause, e.entity, 1)
+		ts_lib.add_souls_from_kill(e.force, e.cause, e.entity, 1)
 	end
 end
 
 ------------------------------------------------------------------------------- Event hooks
-
--- script.on_init(on_init)
--- script.on_event(defines.events.on_force_created, on_force_created)
 
 script.on_event(defines.events.on_built_entity, on_lab_created, {{filter="type", type="lab"}})
 script.on_event(defines.events.on_robot_built_entity, on_lab_created, {{filter="type", type="lab"}})
@@ -65,9 +61,18 @@ script.on_event(defines.events.on_space_platform_mined_entity, on_lab_destroyed,
 
 script.on_event(defines.events.on_entity_died, on_entity_died, {
 	{filter="type", type="unit"},
+	{filter="type", type="character"},
 	{filter="type", type="unit-spawner"},
+	{filter="type", type="turret"},
 	{filter="type", type="segmented-unit"},
 	{filter="type", type="spider-unit"},
-	{filter="type", type="turret"},
 	{filter="type", type="lab"},
+	{filter="type", type="combat-robot"},
+	{filter="type", type="construction-robot"},
+	{filter="type", type="logistic-robot"},
+	{filter="type", type="ammo-turret"},
+	{filter="type", type="fluid-turret"},
+	{filter="type", type="electric-turret"},
+	{filter="type", type="artillery-turret"},
+	{filter="type", type="car"}
 })

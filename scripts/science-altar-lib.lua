@@ -86,7 +86,9 @@ function altar_lib.get_altar_data(altar)
 	if altar.type == "lab" then
 		return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number]
 	elseif altar.type == "character" then
-		return storage.science_altars.players[altar.player.index],1
+		if altar.player ~= nil then
+			return storage.science_altars.players[altar.player.index],1
+		end
 	elseif altar.type == "car" or altar.type == "spider-vehicle" then
 		-- Use the driver if the gunner is automatic (idk if that's possible but who cares)
 		local killer = not altar.driver_is_gunner and altar.get_passenger() or altar.get_driver()

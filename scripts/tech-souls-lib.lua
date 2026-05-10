@@ -12,6 +12,16 @@ function ts_lib.give_souls_from_kill(altar_data, souls)
 	altar_data.kills = altar_data.kills + 1
 end
 
+function ts_lib.get_soul_value(entity)
+	-- TODO: Add support for get_altar_data
+	local altar_data = altar_lib.get_altar_data(entity)
+	if altar_data then
+		return altar_data.souls
+	else
+		return entity.max_health ^ 0.75
+	end
+end
+
 -- Add souls to force
 function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 	local altar_data,altar_scale = killer and altar_lib.get_altar_data(killer) or nil,1
@@ -24,7 +34,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 		end
 	end
 
-	local souls = entity.max_health ^ 0.75
+	local souls = ts_lib.get_soul_value(entity)
 
 	local num_particles = math.max(math.sqrt(souls / tq_lib.get_souls_per_blip(force)), 1)
 	for i=1,num_particles do

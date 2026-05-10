@@ -20,6 +20,6 @@
 
 Last Steps!
  -[ ] Handle infinite / multi-level techs
- -[ ] Add shortcut / keybinding to toggle the research leaderboard
+ -[x] Add shortcut / keybinding to toggle the research leaderboard
  -[ ] Add a tool for inspecting how many souls an enemy is worth
  -[ ] Add "souls" relative UI to show how many souls a player / science altar has

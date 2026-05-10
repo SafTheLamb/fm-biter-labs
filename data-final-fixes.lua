@@ -17,3 +17,4 @@ local recipes = frep.find_by_ingredient("lab")
 for _,recipe_name in pairs(recipes) do
 	frep.replace_ingredient(recipe_name, "lab", "science-altar")
 end
+

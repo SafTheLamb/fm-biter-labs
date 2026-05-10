@@ -10,6 +10,7 @@
 	},
 	"dependencies": [
 		"base",
-		"fdsl"
+		"fdsl",
+		"? space-age"
 	]
 }
