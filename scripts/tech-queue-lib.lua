@@ -1,7 +1,8 @@
 local util = require("__core__.lualib.util")
 
 local tq_lib = {
-	events = {}
+	events = {},
+	on_nth_tick = {}
 }
 
 ------------------------------------------------------------------------------- Initialization
@@ -36,6 +37,9 @@ end
 ------------------------------------------------------------------------------- Queue
 
 function tq_lib.is_valid_tech(tech)
+	if not tech.enabled then
+		return false
+	end
 	if prototypes.technology[tech.name].research_trigger then
 		return false
 	end
@@ -263,6 +267,10 @@ tq_lib.on_configuration_changed = function(e)
 	end
 end
 
--- TODO: Handle technologies being added/removed via on_configuration_changed (use e.migrations?)
+tq_lib.on_nth_tick[60] = function(e)
+	for _,force in pairs(game.forces) do
+		tq_lib.reinit_queue_sets(force)
+	end
+end
 
 return tq_lib

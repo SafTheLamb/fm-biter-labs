@@ -116,19 +116,6 @@ end
 ------------------------------------------------------------------------------- Updating
 
 altar_lib.on_nth_tick[60] = function(e)
-	for _,player in pairs(game.players) do
-		local player_altar_data = storage.science_altars.players[player.index]
-		if player.character and player_altar_data.souls > 0 then
-			local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
-			if next(altars) then
-				local altar = altars[math.random(#altars)]
-				local altar_data = altar_lib.get_altar_data(altar)
-				altar_data.souls = altar_data.souls + player_altar_data.souls
-				player_altar_data.souls = 0
-			end
-		end
-	end
-
 	for _,force in pairs(game.forces) do
 		if not force.research_enabled then goto continue end
 		local force_altars = storage.science_altars[force.index]
@@ -161,6 +148,7 @@ function altar_lib.update_altar(altar_data, altar)
 		for _,ingredient in pairs(tech.research_unit_ingredients) do
 			tech_blips = tech_blips + ingredient.amount
 		end
+		tech_blips = math.max(tech_blips, 0.01)
 		blips = blips * (10*second / tech.research_unit_energy)
 
 		if blips >= tech_blips then
