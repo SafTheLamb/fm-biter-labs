@@ -52,7 +52,7 @@ data:extend({
 		name = "biter-labs-soul-scouter",
 		icon = "__biter-labs__/graphics/technology/soul-scouter.png",
 		icon_size = 256,
-		prerequisites = {"military", "gun-turret"},
+		prerequisites = {"stone-wall", "gun-turret"},
 		unit = {
 			ingredients = {
 				{"automation-science-pack", 1},

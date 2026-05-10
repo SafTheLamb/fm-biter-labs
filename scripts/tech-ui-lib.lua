@@ -35,6 +35,21 @@ end
 
 ------------------------------------------------------------------------------- Leaderboard 
 
+function tu_lib.get_tech_name(tech)
+	if tech.localised_name then
+		return tech.localised_name
+	end
+	local tokens = util.split(tech.name, '-')
+	if tonumber(tokens[#tokens], 10) then
+		local tech_name = tokens[1]
+		for i=2,#tokens-1 do
+			tech_name = tech_name..'-'..tokens[i]
+		end
+		return {"", {"technology-name."..tech_name}, " "..tokens[#tokens]}
+	end
+	return {"technology-name."..tech.name}
+end
+
 function tu_lib.update_tech_leaderboard(player)
 	local leaderboard = player.gui.screen["biter-labs-research-leaderboard"]
 	if not leaderboard then return end
@@ -50,7 +65,8 @@ function tu_lib.update_tech_leaderboard(player)
 	for i,tech_id in pairs(top_tech_ids) do
 		local tech_data = tq_lib.get_tech_data(player.force, tech_id)
 		local tech = player.force.technologies[tech_data.name]
-		local label = leaderboard.add{type="label", name="tech-"..i, caption={"biter-labs-ui.leaderboard-tech", i, tech_data.name, {"technology-name."..tech_data.name}, math.max(0.1 * math.floor(1000 * tech.saved_progress), 0.1)}}
+		local tech_name = tu_lib.get_tech_name(tech)
+		local label = leaderboard.add{type="label", name="tech-"..i, caption={"biter-labs-ui.leaderboard-tech", i, tech_data.name, tech_name, math.max(0.1 * math.floor(1000 * tech.saved_progress), 0.1)}}
 		label.style.font_color = {0,1,0}
 	end
 end

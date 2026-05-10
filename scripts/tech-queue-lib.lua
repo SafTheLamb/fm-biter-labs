@@ -60,8 +60,8 @@ function tq_lib.try_queue_tech(tech)
 		end
 	end
 
-	for _,queued_name in pairs(tech_queue) do
-		if tech.name == queued_name then
+	for _,queued_data in pairs(tech_queue) do
+		if tech.name == queued_data.name then
 			return false
 		end
 	end
