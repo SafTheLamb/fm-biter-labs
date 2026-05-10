@@ -22,4 +22,4 @@
  -[x] Add a tool for inspecting how many souls an enemy is worth
 
 LAST STEP!
- -[ ] Handle infinite / multi-level techs
+ -[x?] Handle infinite / multi-level techs

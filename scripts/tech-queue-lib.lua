@@ -189,8 +189,13 @@ function tq_lib.research_tech(tech)
 
 	tech.saved_progress = 0
 	tech.researched = true
-	for _,successor in pairs(tech.successors or {}) do
-		tq_lib.try_queue_tech(successor)
+	if tech.researched then
+		for _,successor in pairs(tech.successors or {}) do
+			tq_lib.try_queue_tech(successor)
+		end
+	else
+		-- Multi-level techs have their level increased when 
+		tq_lib.try_queue_tech(tech)
 	end
 end
 
@@ -215,10 +220,15 @@ end
 
 tq_lib.events[defines.events.on_research_finished] = function(e)
 	tq_lib.try_dequeue_tech(e.research)
-	for _,successor in pairs(e.research.successors or {}) do
-		tq_lib.try_queue_tech(successor)
+	if e.research.researched then
+		for _,successor in pairs(e.research.successors or {}) do
+			tq_lib.try_queue_tech(successor)
+		end
+		tq_lib.reinit_queue_sets(e.research.force)
+	else
+		-- Multi-level techs will be "finished" but not be researched
+		tq_lib.try_queue_tech(e.research)
 	end
-	tq_lib.reinit_queue_sets(e.research.force)
 end
 
 tq_lib.events[defines.events.on_research_reversed] = function(e)

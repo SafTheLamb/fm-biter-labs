@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+  Major Features:
+    - Initial release
+    - Killing enemies near a science altar with the requisite science packs progresses research
+    - Research progress is distributed randomly between available technologies
+    - Soul scouter can be used to analyze enemy power levels
+    - As research progresses, the amount of souls required slowly increases
