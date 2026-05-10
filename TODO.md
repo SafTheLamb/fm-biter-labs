@@ -17,9 +17,9 @@
  -[x] Depreciate research value from units the more research the force has
  -[x] Weigh research value by unit health
  -[x] Also listen to worm kills, nests, etc
-
-Last Steps!
- -[ ] Handle infinite / multi-level techs
- -[x] Add shortcut / keybinding to toggle the research leaderboard
- -[ ] Add a tool for inspecting how many souls an enemy is worth
  -[ ] Add "souls" relative UI to show how many souls a player / science altar has
+ -[x] Add shortcut / keybinding to toggle the research leaderboard
+ -[x] Add a tool for inspecting how many souls an enemy is worth
+
+LAST STEP!
+ -[ ] Handle infinite / multi-level techs

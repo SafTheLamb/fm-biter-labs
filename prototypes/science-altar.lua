@@ -35,8 +35,8 @@ data:extend({
 		max_health = 250,
 		corpse = "science-altar-remnants",
 		dying_explosion = "lab-explosion",
-		collision_box = {{-1.2, -1.2}, {1.2, 1.2}},
-		selection_box = {{-1.5, -1.5}, {1.5, 1.5}},
+		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
+		selection_box = {{-2, -2}, {2, 2}},
 		damaged_trigger_effect = hit_effects.entity(),
 		on_animation = {
 			layers = {
@@ -47,8 +47,8 @@ data:extend({
 					frame_count = 33,
 					line_length = 11,
 					animation_speed = 1 / 3,
-					shift = util.by_pixel(0, 1.5),
-					scale = 0.5
+					shift = util.by_pixel(0, 1.5*4/3),
+					scale = 2/3
 				},
 				{
 					filename = "__base__/graphics/entity/lab/lab-integration.png",
@@ -57,8 +57,8 @@ data:extend({
 					line_length = 1,
 					repeat_count = 33,
 					animation_speed = 1 / 3,
-					shift = util.by_pixel(0, 15.5),
-					scale = 0.5
+					shift = util.by_pixel(0, 15.5*4/3),
+					scale = 2/3
 				},
 				{
 					filename = "__biter-labs__/graphics/entity/science-altar/science-altar-light.png",
@@ -70,7 +70,7 @@ data:extend({
 					line_length = 11,
 					animation_speed = 1 / 3,
 					shift = util.by_pixel(0, 0),
-					scale = 0.5
+					scale = 2/3
 				},
 				{
 					filename = "__base__/graphics/entity/lab/lab-shadow.png",
@@ -79,8 +79,8 @@ data:extend({
 					line_length = 1,
 					repeat_count = 33,
 					animation_speed = 1 / 3,
-					shift = util.by_pixel(13, 11),
-					scale = 0.5,
+					shift = util.by_pixel(13*4/3, 11*4/3),
+					scale = 2/3,
 					draw_as_shadow = true
 				}
 			}
@@ -91,23 +91,23 @@ data:extend({
 					filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
 					width = 194,
 					height = 174,
-					shift = util.by_pixel(0, 1.5),
-					scale = 0.5
+					shift = util.by_pixel(0, 1.5*4/3),
+					scale = 2/3
 				},
 				{
 					filename = "__base__/graphics/entity/lab/lab-integration.png",
 					width = 242,
 					height = 162,
-					shift = util.by_pixel(0, 15.5),
-					scale = 0.5
+					shift = util.by_pixel(0, 15.5*4/3),
+					scale = 2/3
 				},
 				{
 					filename = "__base__/graphics/entity/lab/lab-shadow.png",
 					width = 242,
 					height = 136,
-					shift = util.by_pixel(13, 11),
+					shift = util.by_pixel(13*4/3, 11*4/3),
 					draw_as_shadow = true,
-					scale = 0.5
+					scale = 2/3
 				}
 			}
 		},
