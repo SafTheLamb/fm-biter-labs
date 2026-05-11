@@ -152,12 +152,17 @@ function altar_lib.update_altar(altar_data, altar)
 		blips = blips * (10*second / tech.research_unit_energy)
 
 		if blips >= tech_blips then
-			local unit_amount = math.min(blips / tech_blips, (1 - tech.saved_progress) * tech.research_unit_count)
+			local unit_amount = blips / tech_blips
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
 				unit_amount = math.min(unit_amount, altar.get_item_count(ingredient.name) / ingredient.amount)
 			end
 			unit_amount = math.floor(unit_amount)
 			if unit_amount == 0 then return end
+
+			local units_left = math.max(1, (1 - tech.saved_progress) * tech.research_unit_count)
+			if unit_amount > units_left then
+				unit_amount = math.floor(units_left)
+			end
 
 			local kills = altar_data.kills * unit_amount * tech_blips / blips
 			tech_data.kills = tech_data.kills + kills
@@ -166,7 +171,6 @@ function altar_lib.update_altar(altar_data, altar)
 			altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
 
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
-				-- BUG: blip cost does not account for ingredients with >1... it's used very rarely anyway
 				altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
 			end
 			return true

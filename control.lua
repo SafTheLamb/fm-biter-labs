@@ -19,15 +19,13 @@ end
 local function on_lab_destroyed(e)
 	if e.entity.name ~= "science-altar" then return end
 
-	if e.damage_type then
-		game.print(e.damage_type.name)
-	end
-
 	if e.cause then
 		local altar_data = altar_lib.get_altar_data(e.entity)
 		if altar_data then
 			local player_altar_data = altar_lib.get_altar_data(e.cause)
-			ts_lib.give_souls_from_kill(player_altar_data, altar_data.souls)
+			if player_altar_data then
+				ts_lib.give_souls_from_kill(player_altar_data, altar_data.souls)
+			end
 		end
 	end
 	altar_lib.remove_altar(e.entity)

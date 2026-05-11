@@ -33,6 +33,7 @@ data:extend({
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
 		minable = {mining_time = 1, result = "science-altar"},
 		max_health = 250,
+		is_military_target = true,
 		corpse = "science-altar-remnants",
 		dying_explosion = "lab-explosion",
 		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},

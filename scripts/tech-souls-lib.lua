@@ -14,12 +14,11 @@ function ts_lib.give_souls_from_kill(altar_data, souls)
 end
 
 function ts_lib.get_soul_value(entity)
-	-- TODO: Add support for get_altar_data
 	local altar_data = altar_lib.get_altar_data(entity)
 	if altar_data then
 		return altar_data.souls
 	else
-		return entity.max_health ^ 0.75
+		return entity.max_health ^ 0.9
 	end
 end
 

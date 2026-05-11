@@ -1,10 +1,19 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.1
-Date: 2026-05-04
+Version: 0.1.2
+Date: 2026-05-11
   Bugfixes:
-    - t
+    - Fix technologies getting stuck at 99.9%
+    - Fix crash when science altar is destroyed
+  Compatibility:
+    - Add compatibility for AAI Industry burner labs (by hiding it)
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2026-05-10
+  Bugfixes:
+    - Fix crash when researching an infinite tech
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
+Date: 2026-05-10
   Major Features:
     - Initial release
     - Killing enemies near a science altar with the requisite science packs progresses research

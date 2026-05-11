@@ -60,8 +60,8 @@ function tq_lib.try_queue_tech(tech)
 		end
 	end
 
-	for _,queued_data in pairs(tech_queue) do
-		if type(queued_data) == "table" and tech.name == queued_data.name then
+	for key,queued_data in pairs(tech_queue) do
+		if type(key) == "number" and tech.name == queued_data.name then
 			return false
 		end
 	end
@@ -104,7 +104,6 @@ end
 ------------------------------------------------------------------------------- Researching
 
 function tq_lib.get_random_tech_index(altar)
-	-- TODO: Update to use queue sets
 	local tech_queue = storage.tech_queue[altar.force.index]
 	local valid_tech_ids = {}
 	for set_ingredients,queue_set in pairs(tech_queue.queue_sets) do
@@ -157,13 +156,12 @@ function tq_lib.get_tech_data(force, tech_id)
 end
 
 function tq_lib.progress_tech(tech, blips)
-	-- TODO: Convert from blips to progress
 	local new_progress = tech.saved_progress + blips / tech.research_unit_count
 
 	local tech_queue = storage.tech_queue[tech.force.index]
 	tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * blips
 
-	if new_progress >= 1 then
+	if new_progress > 1 - 1 / tech.research_unit_count then
 		tq_lib.research_tech(tech)
 		tech.saved_progress = 0
 	else
@@ -277,10 +275,11 @@ tq_lib.on_configuration_changed = function(e)
 	end
 end
 
-tq_lib.on_nth_tick[60] = function(e)
-	for _,force in pairs(game.forces) do
-		tq_lib.reinit_queue_sets(force)
-	end
-end
+-- TODO: Re-evaluate queued techs regularly, similiar to on_configuration_changed, making sure nothing breaks with enabled being toggled.
+-- tq_lib.on_nth_tick[60] = function(e)
+-- 	for _,force in pairs(game.forces) do
+-- 		tq_lib.reinit_queue_sets(force)
+-- 	end
+-- end
 
 return tq_lib
