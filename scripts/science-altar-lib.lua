@@ -14,6 +14,12 @@ altar_lib.on_init = function()
 	for _,force in pairs(game.forces) do
 		altar_lib.init_force(force)
 	end
+	for _,player in pairs(game.forces) do
+		storage.science_altars.players[player.index] = {
+			souls = 0,
+			kills = 0
+		}
+	end
 end
 
 function altar_lib.init_force(force)
