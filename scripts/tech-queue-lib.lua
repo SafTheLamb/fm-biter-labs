@@ -1,4 +1,5 @@
 local util = require("__core__.lualib.util")
+local utibl = require("__biter-labs__.scripts.bitlab-util")
 
 local tq_lib = {
 	events = {},
@@ -86,7 +87,7 @@ end
 
 function tq_lib.print_queue(force)
 	local tech_queue = storage.tech_queue[force.index]
-	force.print("Technologies avaiable for "..force.name.." research:")
+	force.print({"biter-labs-ui.research-queue-print", force.name})
 	for tech_id,tech_data in pairs(tech_queue) do
 		if type(tech_id) == "number" then
 			force.print(tech_id..':'..tech_data.name..", kills="..tech_data.kills)
@@ -323,11 +324,28 @@ tq_lib.on_nth_tick[1] = function(e)
 	end
 end
 
--- TODO: Re-evaluate queued techs regularly, similiar to on_configuration_changed, making sure nothing breaks with enabled being toggled.
--- tq_lib.on_nth_tick[60] = function(e)
--- 	for _,force in pairs(game.forces) do
--- 		tq_lib.reinit_queue_sets(force)
--- 	end
--- end
+commands.add_command("bitlab-research-queue", {"biter-labs-ui.research-queue-help"}, function(e)
+	local player = game.get_player(e.player_index)
+	if player and not player.admin then
+		player.print({"biter-labs-ui.command-admin"})
+		return
+	end
+	if type(e.parameter) == "string" then
+		local forces = player and {player.force} or game.forces
+		if e.parameter == "print" then
+			for _,force in pairs(forces) do
+				tq_lib.print_queue(force)
+			end
+			return
+		elseif e.parameter == "reset" then
+			game.print({"biter-labs-ui.research-queue-reset"})
+			for _,force in pairs(forces) do
+				tq_lib.reset_queue(force)
+			end
+			return
+		end
+	end
+	utibl.print(player, {"biter-labs-ui.command-error", e.name})
+end)
 
 return tq_lib

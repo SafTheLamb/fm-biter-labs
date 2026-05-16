@@ -74,36 +74,44 @@ end
 
 ------------------------------------------------------------------------------- Players
 
-altar_lib.events[defines.events.on_player_created] = function(e)
-	storage.science_altars.players[e.player_index] = {
+function altar_lib.init_player(player)
+	assert(player)
+	storage.science_altars.players[player.index] = {
 		souls = 0,
 		kills = 0
 	}
 end
 
+altar_lib.events[defines.events.on_player_created] = function(e)
+	altar_lib.init_player(game.get_player(e.player_index))
+end
+
 altar_lib.events[defines.events.on_player_died] = function(e)
-	storage.science_altars.players[e.player_index].souls = 0
+	altar_lib.init_player(game.get_player(e.player_index))
 end
 
 ------------------------------------------------------------------------------- Altar data
 
 -- returns: altar_data (can be null), altar_scale (null if altar is lab)
 function altar_lib.get_altar_data(altar)
-	if altar.type == "lab" then
-		return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number]
-	elseif altar.type == "character" then
-		if altar.player ~= nil then
-			return storage.science_altars.players[altar.player.index],1
+	if altar then
+		if altar.type == "lab" then
+			return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number],1
+		elseif altar.type == "character" then
+			if altar.player ~= nil then
+				return storage.science_altars.players[altar.player.index],1
+			end
+		elseif altar.type == "car" or altar.type == "spider-vehicle" then
+			-- Use the driver if the gunner is automatic (idk if that's possible but who cares)
+			local killer = not altar.driver_is_gunner and altar.get_passenger() or altar.get_driver()
+			-- only give souls to players physically inside the vehicle
+			if not killer or killer.is_player() or killer.type ~= "character" then
+				return nil
+			end
+			return storage.science_altars.players[killer.player.index],0.5
 		end
-	elseif altar.type == "car" or altar.type == "spider-vehicle" then
-		-- Use the driver if the gunner is automatic (idk if that's possible but who cares)
-		local killer = not altar.driver_is_gunner and altar.get_passenger() or altar.get_driver()
-		-- only give souls to players physically inside the vehicle
-		if not killer or killer.is_player() or killer.type ~= "character" then
-			return nil
-		end
-		return storage.science_altars.players[killer.player.index],0.5
 	end
+	return nil,1
 end
 
 function altar_lib.add_altar(altar)
@@ -173,8 +181,8 @@ function altar_lib.update_altar(altar_data, altar)
 			local kills = altar_data.kills * unit_amount * tech_blips / blips
 			tech_data.kills = tech_data.kills + kills
 			tq_lib.progress_tech(tech, unit_amount)
-			altar_data.kills = altar_data.kills - kills
-			altar_data.souls = altar_data.souls - unit_amount * tech_blips * souls_per_blip
+			altar_data.kills = math.max(altar_data.kills - kills, 0)
+			altar_data.souls = math.max(altar_data.souls - unit_amount * tech_blips * souls_per_blip, 0)
 
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
 				altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})

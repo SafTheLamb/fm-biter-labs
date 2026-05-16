@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-05-16
+  Bugfixes:
+    - Fix souls going negative / infinite
+    - Limit the number of particles that can spawn at once to 1000
+  Changes:
+    - Add command to print the research queue. See /help bitlab-research-queue for details
+    - Add command to reset player souls. See /help bitlab-reset-player-souls for details
+    - Both commands require admin privileges to run
+---------------------------------------------------------------------------------------------------
 Version: 0.1.5
 Date: 2026-05-16
   Bugfixes:

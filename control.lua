@@ -74,20 +74,3 @@ script.on_event(defines.events.on_entity_died, on_entity_died, {
 	{filter="type", type="artillery-turret"},
 	{filter="type", type="car"}
 })
-
-commands.add_command("bitlab-research-queue", {"biter-labs-ui.bitlab-research-queue-help"}, function(e)
-	local player = game.get_player(e.player_index)
-	if player and not player.admin then player.print("You need admin privileges to run this command.") end
-	local forces = player and {player.force} or game.forces
-	if type(e.parameter) == "string" then
-		if e.parameter == "print" then
-			for _,force in pairs(forces) do
-				tq_lib.print_queue(force)
-			end
-		elseif e.parameter == "reset" then
-			for _,force in pairs(forces) do
-				tq_lib.reset_queue(force)
-			end
-		end
-	end
-end)
