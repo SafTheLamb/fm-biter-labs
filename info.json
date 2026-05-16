@@ -3,7 +3,7 @@
 	"title": "Biter Laboratories",
 	"description": "Research with violence.",
 	"author": "SafTheLamb",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"factorio_version": "2.0",
 	"package": {
 		"ignore": ["thumbnail.xcf", "**/*.xcf"] 
