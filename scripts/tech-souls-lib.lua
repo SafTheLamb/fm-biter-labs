@@ -85,7 +85,7 @@ ts_lib.on_nth_tick[6] = function(e)
 			if next(altars) then
 				local altar = altars[math.random(#altars)]
 				local altar_data = altar_lib.get_altar_data(altar)
-				local soul_transfer = math.max(math.min(1, altar_data.souls), math.sqrt(altar_data.souls))
+				local soul_transfer = math.max(math.min(1, player_altar_data.souls), math.sqrt(player_altar_data.souls))
 				local num_particles = math.max(math.sqrt(soul_transfer / tq_lib.get_souls_per_blip(player.force)), 1)
 
 				player_altar_data.souls = player_altar_data.souls - soul_transfer
