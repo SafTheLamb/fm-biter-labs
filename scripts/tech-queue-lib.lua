@@ -34,7 +34,7 @@ tq_lib.events[defines.events.on_force_created] = function(e)
 	tq_lib.init_force(e.force)
 end
 
-------------------------------------------------------------------------------- Queue
+------------------------------------------------------------------------------- Queue management
 
 function tq_lib.is_valid_tech(tech)
 	if not tech.enabled then
@@ -72,14 +72,65 @@ end
 
 function tq_lib.try_dequeue_tech(tech)
 	local tech_queue = storage.tech_queue[tech.force.index]
-	for i,tech_data in ipairs(tech_queue) do
-		if tech_data.name == tech.name then
-			local kills = tech_data.kills
-			table.remove(tech_queue, i)
-			return kills
+	for tech_id,tech_data in pairs(tech_queue) do
+		if type(tech_id) == "number" then
+			if tech_data.name == tech.name then
+				local kills = tech_data.kills
+				table.remove(tech_queue, tech_id)
+				return kills
+			end
 		end
 	end
 	return false
+end
+
+function tq_lib.print_queue(force)
+	local tech_queue = storage.tech_queue[force.index]
+	force.print("Technologies avaiable for "..force.name.." research:")
+	for tech_id,tech_data in pairs(tech_queue) do
+		if type(tech_id) == "number" then
+			force.print(tech_id..':'..tech_data.name..", kills="..tech_data.kills)
+		end
+	end
+end
+
+function tq_lib.reset_queue(force)
+	local tech_queue = storage.tech_queue[force.index]
+	local old_kills = {}
+	for tech_index,tech_data in pairs(tech_queue) do
+		if type(tech_index) == "number" then
+			old_kills[tech_data.name] = tech_data.kills
+		end
+	end
+
+	tech_queue = {
+		souls_per_blip = 5,
+		queue_sets = {}
+	}
+
+	for _,tech in pairs(force.technologies) do
+		if tq_lib.is_valid_tech(tech) then
+			if tech.researched then
+				tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.research_unit_count
+				goto continue
+			end
+			for _,prerequisite in pairs(tech.prerequisites or {}) do
+				if not prerequisite.researched then
+					-- This would cause tracked kills to be lost
+					tech.saved_progress = 0
+					goto continue
+				end
+			end
+			tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.saved_progress * tech.research_unit_count
+			table.insert(tech_queue, {
+				name = tech.name,
+				kills = old_kills[tech.name] or 0
+			})
+		end
+		::continue::
+	end
+	storage.tech_queue[force.index] = tech_queue
+	tq_lib.reinit_queue_sets(force)
 end
 
 ------------------------------------------------------------------------------- Queue sets
@@ -87,16 +138,18 @@ end
 function tq_lib.reinit_queue_sets(force)
 	local tech_queue = storage.tech_queue[force.index]
 	tech_queue.queue_sets = {}
-	for tech_id,tech_data in ipairs(tech_queue) do
-		local tech = force.technologies[tech_data.name]
-		local key = ""
-		for _,ingredient in pairs(tech.research_unit_ingredients) do
-			key = key..ingredient.name..','
-		end
-		if not tech_queue.queue_sets[key] then
-			tech_queue.queue_sets[key] = {tech_id}
-		else
-			table.insert(tech_queue.queue_sets[key], tech_id)
+	for tech_id,tech_data in pairs(tech_queue) do
+		if type(tech_id) == "number" then
+			local tech = force.technologies[tech_data.name]
+			local key = ""
+			for _,ingredient in pairs(tech.research_unit_ingredients) do
+				key = key..ingredient.name..','
+			end
+			if not tech_queue.queue_sets[key] then
+				tech_queue.queue_sets[key] = {tech_id}
+			else
+				table.insert(tech_queue.queue_sets[key], tech_id)
+			end
 		end
 	end
 end
@@ -216,16 +269,31 @@ tq_lib.events[defines.events.on_research_queued] = function(e)
 	e.force.print({"biter-labs-ui.research-queue-disabled"})
 end
 
-tq_lib.events[defines.events.on_research_finished] = function(e)
-	tq_lib.try_dequeue_tech(e.research)
-	if e.research.researched then
-		for _,successor in pairs(e.research.successors or {}) do
+function tq_lib.on_research_finished(tech)
+	tq_lib.try_dequeue_tech(tech)
+
+	if settings.global["bitlab-always-reset"].value then
+		tq_lib.reset_queue(tech.force)
+		return
+	end
+
+	if tech.researched then
+		for _,successor in pairs(tech.successors or {}) do
 			tq_lib.try_queue_tech(successor)
 		end
-		tq_lib.reinit_queue_sets(e.research.force)
+		tq_lib.reinit_queue_sets(tech.force)
 	else
 		-- Multi-level techs will be "finished" but not be researched
-		tq_lib.try_queue_tech(e.research)
+		tq_lib.try_queue_tech(tech)
+	end
+end
+
+tq_lib.events[defines.events.on_research_finished] = function(e)
+	if settings.global["bitlab-wait-a-tick"].value then
+		local tech_queue = storage.tech_queue[e.research.force.index]
+		tech_queue.delayed_research = {name=e.research.name}
+	else
+		tq_lib.on_research_finished(e.research)
 	end
 end
 
@@ -239,39 +307,19 @@ end
 
 tq_lib.on_configuration_changed = function(e)
 	for _,force in pairs(game.forces) do
-		local tech_queue = storage.tech_queue[force.index]
-		local old_kills = {}
-		for _,tech_data in ipairs(tech_queue) do
-			old_kills[tech_data.name] = tech_data.kills
-		end
+		tq_lib.reset_queue(force)
+	end
+end
 
-		tech_queue = {
-			souls_per_blip = 5,
-			queue_sets = {}
-		}
-
-		for _,tech in pairs(force.technologies) do
-			if tq_lib.is_valid_tech(tech) then
-				if tech.researched then
-					tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.research_unit_count
-					goto continue
-				end
-				for _,prerequisite in pairs(tech.prerequisites or {}) do
-					if not prerequisite.researched then
-						-- This would cause tracked kills to be lost
-						tech.saved_progress = 0
-						goto continue
-					end
-				end
-				tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.saved_progress * tech.research_unit_count
-				table.insert(tech_queue, {
-					name = tech.name,
-					kills = old_kills[tech.name] or 0
-				})
+tq_lib.on_nth_tick[1] = function(e)
+	if settings.global["bitlab-wait-a-tick"].value then
+		for _,force in pairs(game.forces) do
+			local tech_queue = storage.tech_queue[force.index]
+			if tech_queue.delayed_research then
+				tq_lib.on_research_finished(force.technologies[tech_queue.delayed_research.name])
+				tech_queue.delayed_research = nil
 			end
-			::continue::
 		end
-		tq_lib.reinit_queue_sets(force)
 	end
 end
 
