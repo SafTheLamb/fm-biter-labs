@@ -58,6 +58,7 @@ for _,fish in pairs(data.raw.fish) do
 					end
 					fish_with_souls[fish.name.."-eat"] = fish.max_health ^ 0.9
 					fish_with_souls[fish.name.."-kill"] = math.sqrt(math.max(amount, 0))
+					table.insert(data.raw["selection-tool"]["biter-labs-soul-scouter"].alt_select.entity_filters, fish.name)
 				end
 			end
 		end

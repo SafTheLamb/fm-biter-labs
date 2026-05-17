@@ -21,7 +21,11 @@ function ts_lib.get_soul_value(entity)
 	if altar_data then
 		return math.max(altar_data.souls, 0)
 	elseif entity.max_health > 0 then
-		return math.max(entity.max_health, 0) ^ 0.9
+		local scale = 1
+		if entity.type == "fish" then
+			scale = prototypes.mod_data["bitlab-fish-with-souls"].data[entity.name.."-kill"] or scale
+		end
+		return scale * math.max(entity.max_health, 0) ^ 0.9
 	end
 	return 0
 end

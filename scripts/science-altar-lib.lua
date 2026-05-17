@@ -158,7 +158,7 @@ end
 function altar_lib.update_altar(altar_data, altar)
 	local souls_per_blip = tq_lib.get_souls_per_blip(altar.force)
 	local blips = altar_data.souls / souls_per_blip
-	-- BUG: blips always go towards the lower-ingredient techs... slow down updates to fix
+	-- BUG: blips always go towards the lower-ingredient techs... slow down updates as a bandaid
 
 	local tech_id = tq_lib.get_random_tech_index(altar)
 	if tech_id then
