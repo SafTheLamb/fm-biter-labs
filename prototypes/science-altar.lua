@@ -3,9 +3,9 @@ local item_sounds = require("__base__.prototypes.item_sounds")
 local sounds = require("__base__.prototypes.entity.sounds")
 
 local magazine_ingredient = "firearm-magazine"
-if mods["wood-military"] and settings.startup["wood-military-smg-ammo"].value then
-	magazine_ingredient = "wood-darts-magazine"
-end
+-- if mods["wood-military"] and settings.startup["wood-military-smg-ammo"].value then
+-- 	magazine_ingredient = "wood-darts-magazine"
+-- end
 
 data:extend({
 	{
