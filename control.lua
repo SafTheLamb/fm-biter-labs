@@ -11,12 +11,6 @@ handler.add_lib(altar_lib)
 handler.add_lib(ts_lib)
 handler.add_lib(tu_lib)
 
-local function on_lab_created(e)
-	if e.entity.name == "science-altar" then
-		altar_lib.add_altar(e.entity)
-	end
-end
-
 local function on_lab_destroyed(e)
 	if e.entity.name ~= "science-altar" then return end
 
