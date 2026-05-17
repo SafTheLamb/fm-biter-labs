@@ -1,4 +1,5 @@
 local handler = require("__core__.lualib.event_handler")
+local utibl = require("scripts.bitlab-util")
 
 local tq_lib = require("scripts.tech-queue-lib")
 local altar_lib = require("scripts.science-altar-lib")
@@ -31,14 +32,6 @@ local function on_lab_destroyed(e)
 	altar_lib.remove_altar(e.entity)
 end
 
-script.on_event(defines.events.on_built_entity, on_lab_created, {{filter="type", type="lab"}})
-script.on_event(defines.events.on_robot_built_entity, on_lab_created, {{filter="type", type="lab"}})
-script.on_event(defines.events.on_space_platform_built_entity, on_lab_created, {{filter="type", type="lab"}})
-
-script.on_event(defines.events.on_player_mined_entity, on_lab_destroyed, {{filter="type", type="lab"}})
-script.on_event(defines.events.on_robot_mined_entity, on_lab_destroyed, {{filter="type", type="lab"}})
-script.on_event(defines.events.on_space_platform_mined_entity, on_lab_destroyed, {{filter="type", type="lab"}})
-
 ------------------------------------------------------------------------------- Death event
 
 local function on_entity_died(e)
@@ -49,9 +42,23 @@ local function on_entity_died(e)
 		return
 	end
 
-	if not e.force.is_friend(e.entity.force) and e.entity.is_military_target then
+	local soul_scale = 1
+
+	local force_override = false
+	-- "Edible" fish give souls
+	if e.entity.type == "fish" then
+		local fish_scale = prototypes.mod_data["bitlab-fish-with-souls"].data[e.entity.name.."-kill"]
+		if fish_scale then
+			force_override = true
+			soul_scale = fish_scale
+			goto continue
+		end
+	end
+	::continue::
+
+	if force_override or (not e.force.is_friend(e.entity.force) and e.entity.is_military_target) then
 		local damage_scale = e.damage_type == "explosion" and 0.5 or 1
-		ts_lib.add_souls_from_kill(e.force, e.cause, e.entity, 1)
+		ts_lib.add_souls_from_kill(e.force, e.cause, e.entity, damage_scale * soul_scale)
 	end
 end
 
@@ -72,5 +79,6 @@ script.on_event(defines.events.on_entity_died, on_entity_died, {
 	{filter="type", type="fluid-turret"},
 	{filter="type", type="electric-turret"},
 	{filter="type", type="artillery-turret"},
-	{filter="type", type="car"}
+	{filter="type", type="car"},
+	{filter="type", type="fish"}
 })

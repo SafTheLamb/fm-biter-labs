@@ -122,6 +122,12 @@ function altar_lib.add_altar(altar)
 	}
 end
 
+altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
+	if e.effect_id == "bitlab-science-altar-created" then
+		altar_lib.add_altar(e.source_entity)
+	end
+end
+
 function altar_lib.remove_altar(altar)
 	local altar_storage = storage.science_altars[altar.force.index][altar.surface.index]
 	altar_storage[altar.unit_number] = nil

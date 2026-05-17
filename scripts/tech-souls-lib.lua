@@ -1,6 +1,8 @@
+local util = require("__core__.lualib.util")
+local utibl = require("__biter-labs__.scripts.bitlab-util")
+
 local altar_lib = require("__biter-labs__.scripts.science-altar-lib")
 local tq_lib = require("__biter-labs__.scripts.tech-queue-lib")
-local utibl = require("__biter-labs__.scripts.bitlab-util")
 
 local ts_lib = {
 	events = {},
@@ -30,7 +32,7 @@ function ts_lib.spawn_souls_leaving(entity, count)
 		entity.surface.create_particle{
 			name = "soul-leaving",
 			position = entity.position,
-			height = 0,
+			height = 1,
 			movement = {
 				0.1 - 0.2 * math.random(),
 				0
@@ -72,7 +74,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 	end
 
 	local souls = ts_lib.get_soul_value(entity)
-	local num_particles = math.max(math.sqrt(souls / tq_lib.get_souls_per_blip(force)), 1)
+	local num_particles = math.max(math.sqrt(math.max(souls / tq_lib.get_souls_per_blip(force), 0)), 1)
 	ts_lib.spawn_souls_leaving(entity, num_particles)
 
 	if altar and altar_data then
@@ -80,6 +82,22 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 		ts_lib.spawn_souls_collecting(altar, num_particles)
 	end
 end
+
+ts_lib.events[defines.events.on_script_trigger_effect] = function(e)
+	local event_prefix = "bitlab-fish-eaten-"
+	if util.string_starts_with(e.effect_id, event_prefix) then
+		local fish_name = string.sub(e.effect_id, #event_prefix + 1)
+		local altar = e.target_entity
+		local altar_data = altar and altar_lib.get_altar_data(altar)
+		if altar_data then
+			local souls = prototypes.mod_data["bitlab-fish-with-souls"].data[fish_name.."-eat"]
+			ts_lib.give_souls_from_kill(altar_data, souls)
+			ts_lib.spawn_souls_collecting(altar, 1)
+		end
+	end
+end
+
+------------------------------------------------------------------------------- Player souls
 
 ts_lib.on_nth_tick[6] = function(e)
 	for _,player in pairs(game.players) do

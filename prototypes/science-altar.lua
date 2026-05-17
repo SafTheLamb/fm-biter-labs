@@ -128,6 +128,16 @@ data:extend({
 		energy_source = {type="void"},
 		energy_usage = "1kW",
 		researching_speed = 0,
+		created_effect = {
+			type = "direct",
+			action_delivery = {
+				type = "instant",
+				source_effects = {
+					type = "script",
+					effect_id = "bitlab-science-altar-created"
+				}
+			}
+		},
 		inputs = {
 			"automation-science-pack",
 			"logistic-science-pack",
