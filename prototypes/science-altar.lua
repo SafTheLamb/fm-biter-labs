@@ -2,6 +2,11 @@ local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local item_sounds = require("__base__.prototypes.item_sounds")
 local sounds = require("__base__.prototypes.entity.sounds")
 
+local magazine_ingredient = "firearm-magazine"
+if mods["wood-military"] and settings.startup["wood-military-smg-ammo"].value then
+	magazine_ingredient = "wood-darts-magazine"
+end
+
 data:extend({
 	{
 		type = "item",
@@ -22,7 +27,7 @@ data:extend({
 		ingredients = {
 			{type="item", name="electronic-circuit", amount=10},
 			{type="item", name="stone-brick", amount=10},
-			{type="item", name="firearm-magazine", amount=5}
+			{type="item", name=magazine_ingredient, amount=5}
 		},
 		results = {{type="item", name="science-altar", amount=1}}
 	},
