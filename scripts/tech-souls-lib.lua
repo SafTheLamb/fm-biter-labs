@@ -11,15 +11,10 @@ local ts_lib = {
 
 ------------------------------------------------------------------------------- Death
 
-function ts_lib.give_souls_from_kill(altar_data, souls)
-	altar_data.souls = altar_data.souls + souls
-	altar_data.kills = altar_data.kills + 1
-end
-
 function ts_lib.get_soul_value(entity)
 	local altar_data = altar_lib.get_altar_data(entity)
 	if altar_data then
-		return math.max(altar_data.souls, 0)
+		return altar_data:get_souls()
 	elseif entity.max_health > 0 then
 		local scale = 1
 		if entity.type == "fish" then
@@ -67,8 +62,8 @@ end
 
 -- Add souls to force
 function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
-	local altar_data,altar_scale = altar_lib.get_altar_data(killer)
 	local altar = killer
+	local altar_data = altar_lib.get_altar_data(killer)
 	if not altar_data then
 		local altars = entity.surface.find_entities_filtered{force=force, position=(killer or entity).position, radius=32, type="lab", name="science-altar"}
 		if next(altars) then
@@ -82,7 +77,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 	ts_lib.spawn_souls_leaving(entity, num_particles)
 
 	if altar and altar_data then
-		ts_lib.give_souls_from_kill(altar_data, souls * damage_scale * altar_scale)
+		altar_data:add_souls(souls * damage_scale)
 		ts_lib.spawn_souls_collecting(altar, num_particles)
 	end
 end
@@ -92,10 +87,10 @@ ts_lib.events[defines.events.on_script_trigger_effect] = function(e)
 	if util.string_starts_with(e.effect_id, event_prefix) then
 		local fish_name = string.sub(e.effect_id, #event_prefix + 1)
 		local altar = e.target_entity
-		local altar_data = altar and altar_lib.get_altar_data(altar)
+		local altar_data = altar and altar_lib.get_altar_data(altar) or nil
 		if altar_data then
 			local souls = prototypes.mod_data["bitlab-fish-with-souls"].data[fish_name.."-eat"]
-			ts_lib.give_souls_from_kill(altar_data, souls)
+			altar_data:add_souls(souls)
 			ts_lib.spawn_souls_collecting(altar, 1)
 		end
 	end
@@ -105,23 +100,20 @@ end
 
 ts_lib.on_nth_tick[6] = function(e)
 	for _,player in pairs(game.players) do
-		local player_altar_data = storage.science_altars.players[player.index]
-		if player.character and player_altar_data.souls > 0 then
+		local player_altar_data = altar_lib.get_altar_data(player)
+		if player.character and player_altar_data:get_souls() > 0 then
 			local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
 			if next(altars) then
 				local altar = altars[math.random(#altars)]
 				local altar_data = altar_lib.get_altar_data(altar)
-				local soul_transfer = math.min(player_altar_data.souls, math.sqrt(math.max(player_altar_data.souls, 0)))
-				local num_particles = math.max(math.sqrt(soul_transfer / tq_lib.get_souls_per_blip(player.force)), 1)
-				local kill_transfer = player_altar_data.kills * soul_transfer / player_altar_data.souls
+				local player_souls = player_altar_data:get_souls()
+				
+				local souls_transferred = altar_data:add_souls(math.min(player_souls, math.sqrt(math.max(player_souls, 0))))
+				player_altar_data:add_souls(-souls_transferred)
 
-				player_altar_data.souls = math.max(player_altar_data.souls - soul_transfer, 0)
-				player_altar_data.kills = math.max(player_altar_data.kills - kill_transfer, 0)
-				ts_lib.spawn_souls_leaving(player, num_particles)
-
-				altar_data.souls = altar_data.souls + soul_transfer
-				altar_data.kills = altar_data.kills + kill_transfer
+				local num_particles = math.max(math.sqrt(souls_transferred / tq_lib.get_souls_per_blip(player.force)), 1)
 				ts_lib.spawn_souls_collecting(altar, num_particles)
+				ts_lib.spawn_souls_leaving(player, num_particles)
 			end
 		end
 	end
@@ -140,7 +132,7 @@ commands.add_command("bitlab-reset-player-souls", {"biter-labs-ui.reset-player-s
 		return
 	elseif e.parameter == "CONFIRM!" then
 		for _,player in pairs(game.players) do
-			altar_lib.init_player(player)
+			storage.player_souls[player.index].souls = 0
 		end
 		game.print({"biter-labs-ui.reset-player-souls-confirmed"})
 		return

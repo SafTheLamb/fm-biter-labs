@@ -67,7 +67,7 @@ function tq_lib.try_queue_tech(tech)
 		end
 	end
 
-	table.insert(tech_queue, {name=tech.name, kills=0})
+	table.insert(tech_queue, {name=tech.name, souls=0})
 	return true
 end
 
@@ -76,9 +76,9 @@ function tq_lib.try_dequeue_tech(tech)
 	for tech_id,tech_data in pairs(tech_queue) do
 		if type(tech_id) == "number" then
 			if tech_data.name == tech.name then
-				local kills = tech_data.kills
+				local souls = tech_data.souls
 				table.remove(tech_queue, tech_id)
-				return kills
+				return souls
 			end
 		end
 	end
@@ -90,17 +90,17 @@ function tq_lib.print_queue(force)
 	force.print({"biter-labs-ui.research-queue-print", force.name})
 	for tech_id,tech_data in pairs(tech_queue) do
 		if type(tech_id) == "number" then
-			force.print(tech_id..':'..tech_data.name..", kills="..tech_data.kills)
+			force.print(tech_id..':'..tech_data.name..", souls="..tech_data.souls)
 		end
 	end
 end
 
 function tq_lib.reset_queue(force)
 	local tech_queue = storage.tech_queue[force.index]
-	local old_kills = {}
+	local old_souls = {}
 	for tech_index,tech_data in pairs(tech_queue) do
 		if type(tech_index) == "number" then
-			old_kills[tech_data.name] = tech_data.kills
+			old_souls[tech_data.name] = tech_data.souls
 		end
 	end
 
@@ -125,7 +125,7 @@ function tq_lib.reset_queue(force)
 			tech_queue.souls_per_blip = tech_queue.souls_per_blip + 0.01 * tech.saved_progress * tech.research_unit_count
 			table.insert(tech_queue, {
 				name = tech.name,
-				kills = old_kills[tech.name] or 0
+				souls = old_souls[tech.name] or 0
 			})
 		end
 		::continue::

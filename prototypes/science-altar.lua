@@ -14,7 +14,7 @@ data:extend({
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		subgroup = "production-machine",
 		order = "zb[science-altar]",
-		place_result = "science-altar",
+		place_result = "science-altar-storage-tank",
 		inventory_move_sound = item_sounds.lab_inventory_move,
 		pick_sound = item_sounds.lab_inventory_pickup,
 		drop_sound = item_sounds.lab_inventory_move,
@@ -37,86 +37,12 @@ data:extend({
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
 		minable = {mining_time = 1, result = "science-altar"},
-		max_health = 250,
 		is_military_target = true,
 		corpse = "science-altar-remnants",
 		dying_explosion = "lab-explosion",
-		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
-		selection_box = {{-2, -2}, {2, 2}},
+		collision_mask = {layers = {}},
+		selection_box = {{-2, -2}, {2, 1}},
 		damaged_trigger_effect = hit_effects.entity(),
-		on_animation = {
-			layers = {
-				{
-					filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
-					width = 194,
-					height = 174,
-					frame_count = 33,
-					line_length = 11,
-					animation_speed = 1 / 3,
-					shift = util.by_pixel(0, 1.5*4/3),
-					scale = 2/3
-				},
-				{
-					filename = "__base__/graphics/entity/lab/lab-integration.png",
-					width = 242,
-					height = 162,
-					line_length = 1,
-					repeat_count = 33,
-					animation_speed = 1 / 3,
-					shift = util.by_pixel(0, 15.5*4/3),
-					scale = 2/3
-				},
-				{
-					filename = "__biter-labs__/graphics/entity/science-altar/science-altar-light.png",
-					blend_mode = "additive",
-					draw_as_light = true,
-					width = 216,
-					height = 194,
-					frame_count = 33,
-					line_length = 11,
-					animation_speed = 1 / 3,
-					shift = util.by_pixel(0, 0),
-					scale = 2/3
-				},
-				{
-					filename = "__base__/graphics/entity/lab/lab-shadow.png",
-					width = 242,
-					height = 136,
-					line_length = 1,
-					repeat_count = 33,
-					animation_speed = 1 / 3,
-					shift = util.by_pixel(13*4/3, 11*4/3),
-					scale = 2/3,
-					draw_as_shadow = true
-				}
-			}
-		},
-		off_animation = {
-			layers = {
-				{
-					filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
-					width = 194,
-					height = 174,
-					shift = util.by_pixel(0, 1.5*4/3),
-					scale = 2/3
-				},
-				{
-					filename = "__base__/graphics/entity/lab/lab-integration.png",
-					width = 242,
-					height = 162,
-					shift = util.by_pixel(0, 15.5*4/3),
-					scale = 2/3
-				},
-				{
-					filename = "__base__/graphics/entity/lab/lab-shadow.png",
-					width = 242,
-					height = 136,
-					shift = util.by_pixel(13*4/3, 11*4/3),
-					draw_as_shadow = true,
-					scale = 2/3
-				}
-			}
-		},
 		working_sound = {
 			sound = {
 				filename = "__base__/sound/lab.ogg",
@@ -133,6 +59,40 @@ data:extend({
 		energy_source = {type="void"},
 		energy_usage = "1kW",
 		researching_speed = 0,
+		inputs = data.raw.lab["lab"].inputs,
+		-- module_slots = 2,
+		icons_positioning = {
+			{inventory_index = defines.inventory.lab_modules, shift = {0, 0.9}},
+			{inventory_index = defines.inventory.lab_input, shift = {0, 0}, max_icons_per_row = 4, separation_multiplier = 1/1.1}
+		},
+	},
+	{
+		type = "storage-tank",
+		name = "science-altar-storage-tank",
+		icon = "__biter-labs__/graphics/icons/science-altar.png",
+		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
+		minable = {mining_time = 1, result = "science-altar"},
+		max_health = 250,
+		damaged_trigger_effect = hit_effects.entity(),
+		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
+		selection_box = {{-2, 1}, {2, 2}},
+		icon_draw_specification = {scale=0},
+		fluid_box = {
+			volume = 25000,
+			filter = "bitlab-souls",
+			pipe_picture = assembler2pipepictures(),
+			pipe_covers = pipecoverspictures(),
+			pipe_connections = {
+				{ direction = defines.direction.north, position = {-1.5, -1.5}},
+				{ direction = defines.direction.west, position = {-1.5, -1.5}},
+				{ direction = defines.direction.east, position = {1.5, 1.5}},
+				{ direction = defines.direction.south, position = {1.5, 1.5}},
+			},
+			hide_connection_info = true
+		},
+		two_direction_only = true,
+		window_bounding_box = {{-0.125, 0.6875}, {0.1875, 1.1875}},
+		-- The item actually places science altar storage tank, so that it can be rotated
 		created_effect = {
 			type = "direct",
 			action_delivery = {
@@ -143,19 +103,79 @@ data:extend({
 				}
 			}
 		},
-		inputs = {
-			"automation-science-pack",
-			"logistic-science-pack",
-			"military-science-pack",
-			"chemical-science-pack",
-			"production-science-pack",
-			"utility-science-pack",
-			"space-science-pack"
+		-- Give the storage tank the pictures. The lab on_animation never actually animates anyway
+		pictures = {
+			picture = {
+				layers = {
+					{
+						filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
+						width = 196,
+						height = 219,
+						shift = util.by_pixel(0, 1.5*4/3),
+						scale = 2/3
+					},
+					{
+						filename = "__base__/graphics/entity/lab/lab-integration.png",
+						width = 242,
+						height = 162,
+						shift = util.by_pixel(0, 15.5*4/3),
+						scale = 2/3
+					},
+					{
+						filename = "__base__/graphics/entity/lab/lab-shadow.png",
+						width = 242,
+						height = 136,
+						shift = util.by_pixel(13*4/3, 11*4/3),
+						draw_as_shadow = true,
+						scale = 2/3
+					},
+					{
+						filename = "__base__/graphics/entity/storage-tank/storage-tank-shadow.png",
+						priority = "extra-high",
+						frames = 2,
+						width = 291,
+						height = 153,
+						shift = util.by_pixel(29.75, 22.25),
+						scale = 0.5,
+						draw_as_shadow = true
+          			}
+				}
+			},
+			fluid_background = {
+				filename = "__base__/graphics/entity/storage-tank/fluid-background.png",
+				priority = "extra-high",
+				width = 32,
+				height = 15
+			},
+			window_background = {
+				filename = "__base__/graphics/entity/storage-tank/window-background.png",
+				priority = "extra-high",
+				width = 34,
+				height = 48,
+				scale = 0.5
+			},
+			flow_sprite = {
+				filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
+				priority = "extra-high",
+				width = 160,
+				height = 20
+			},
+			gas_flow = {
+				filename = "__base__/graphics/entity/pipe/steam.png",
+				priority = "extra-high",
+				line_length = 10,
+				width = 48,
+				height = 30,
+				frame_count = 60,
+				animation_speed = 0.25,
+				scale = 0.5
+			}
 		},
-		-- module_slots = 2,
-		icons_positioning = {
-			{inventory_index = defines.inventory.lab_modules, shift = {0, 0.9}},
-			{inventory_index = defines.inventory.lab_input, shift = {0, 0}, max_icons_per_row = 4, separation_multiplier = 1/1.1}
+		flow_length_in_ticks = 360,
+		working_sound = {
+			sound = {filename = "__base__/sound/storage-tank.ogg", volume = 0.6, audible_distance_modifier = 0.5},
+			match_volume_to_activity = true,
+			max_sounds_per_prototype = 3
 		},
 	},
 	{

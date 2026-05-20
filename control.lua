@@ -11,19 +11,16 @@ handler.add_lib(altar_lib)
 handler.add_lib(ts_lib)
 handler.add_lib(tu_lib)
 
-local function on_lab_destroyed(e)
-	if e.entity.name ~= "science-altar" then return end
+local function on_science_altar_destroyed(e)
+	if not e.cause then return end
 
-	if e.cause then
-		local altar_data = altar_lib.get_altar_data(e.entity)
-		if altar_data then
-			local player_altar_data = altar_lib.get_altar_data(e.cause)
-			if player_altar_data then
-				ts_lib.give_souls_from_kill(player_altar_data, altar_data.souls)
-			end
+	local souls = e.entity.get_fluid_count("bitlab-souls")
+	if souls > 0 then
+		local player_altar_data = altar_lib.get_altar_data(e.cause)
+		if player_altar_data then
+			player_altar_data:add_souls(souls)
 		end
 	end
-	altar_lib.remove_altar(e.entity)
 end
 
 ------------------------------------------------------------------------------- Death event
@@ -31,8 +28,8 @@ end
 local function on_entity_died(e)
 	if not (e.force and e.force.research_enabled) then return end
 
-	if e.entity.type == "lab" then
-		on_lab_destroyed(e)
+	if e.entity.name == "science-altar-storage-tank" then
+		on_science_altar_destroyed(e)
 		return
 	end
 
@@ -65,7 +62,7 @@ script.on_event(defines.events.on_entity_died, on_entity_died, {
 	{filter="type", type="turret"},
 	{filter="type", type="segmented-unit"},
 	{filter="type", type="spider-unit"},
-	{filter="type", type="lab"},
+	{filter="type", type="storage-tank"},
 	{filter="type", type="combat-robot"},
 	{filter="type", type="construction-robot"},
 	{filter="type", type="logistic-robot"},

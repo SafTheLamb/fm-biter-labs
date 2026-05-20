@@ -8,17 +8,13 @@ local altar_lib = {
 ------------------------------------------------------------------------------- Forces
 
 altar_lib.on_init = function()
-	storage.science_altars = {
-		players = {}
-	}
+	storage.science_altars = {}
+	storage.player_souls = {}
 	for _,force in pairs(game.forces) do
 		altar_lib.init_force(force)
 	end
-	for _,player in pairs(game.forces) do
-		storage.science_altars.players[player.index] = {
-			souls = 0,
-			kills = 0
-		}
+	for _,player in pairs(game.players) do
+		altar_lib.init_player(player)
 	end
 end
 
@@ -43,7 +39,6 @@ function altar_lib.init_surface(force, surface)
 		altar_lib.add_altar(altar)
 	end
 end
-
 
 altar_lib.events[defines.events.on_surface_created] = function(e)
 	local surface = game.get_surface(e.surface_index)
@@ -76,9 +71,9 @@ end
 
 function altar_lib.init_player(player)
 	assert(player)
-	storage.science_altars.players[player.index] = {
-		souls = 0,
-		kills = 0
+	assert(not storage.player_souls[player.index])
+	storage.player_souls[player.index] = {
+		souls = 0
 	}
 end
 
@@ -87,19 +82,57 @@ altar_lib.events[defines.events.on_player_created] = function(e)
 end
 
 altar_lib.events[defines.events.on_player_died] = function(e)
-	altar_lib.init_player(game.get_player(e.player_index))
+	local soul_storage = storage.player_souls[e.player_index]
+	soul_storage.souls = 0
 end
 
 ------------------------------------------------------------------------------- Altar data
 
--- returns: altar_data (can be null), altar_scale (null if altar is lab)
+local function get_souls_from_altar(self)
+	local altar_storage = storage.science_altars[self.altar.force.index][self.altar.surface.index]
+	local storage_tank = game.get_entity_by_unit_number(altar_storage.altars[self.altar.unit_number].storage_tank)
+	return storage_tank.get_fluid_count("bitlab-souls")
+end
+
+local function add_souls_to_altar(self, amount)
+	local altar_storage = storage.science_altars[self.altar.force.index][self.altar.surface.index]
+	local storage_tank = game.get_entity_by_unit_number(altar_storage.altars[self.altar.unit_number].storage_tank)
+	if amount > 0 then
+		return storage_tank.insert_fluid({name="bitlab-souls", amount=amount * (self.scalar or 1)})
+	else
+		return storage_tank.remove_fluid{name="bitlab-souls", amount=amount}
+	end
+end
+
+local function get_souls_from_player(self)
+	local player_storage = storage.player_souls[self.player_index]
+	return player_storage.souls
+end
+
+local function add_souls_to_player(self, amount)
+	local player_storage = storage.player_souls[self.player_index]
+	local old_souls = player_storage.souls
+	player_storage.souls = math.max(0, player_storage.souls + amount * (amount > 0 and self.scalar or 1))
+	return (player_storage.souls - old_souls)
+end
+
+-- returns: {:get_souls() -> amount, :add_souls(amount) -> actual_amount}
 function altar_lib.get_altar_data(altar)
 	if altar then
 		if altar.type == "lab" then
-			return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number],1
+			-- return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number],1
+			return {
+				altar = altar,
+				get_souls = get_souls_from_altar,
+				add_souls = add_souls_to_altar
+			}
 		elseif altar.type == "character" then
 			if altar.player ~= nil then
-				return storage.science_altars.players[altar.player.index],1
+				return {
+					player_index = altar.player.index,
+					get_souls = get_souls_from_player,
+					add_souls = add_souls_to_player
+				}
 			end
 		elseif altar.type == "car" or altar.type == "spider-vehicle" then
 			-- Use the driver if the gunner is automatic (idk if that's possible but who cares)
@@ -108,29 +141,60 @@ function altar_lib.get_altar_data(altar)
 			if not killer or killer.is_player() or killer.type ~= "character" then
 				return nil
 			end
-			return storage.science_altars.players[killer.player.index],0.5
+			return {
+				player_index = killer.player.index,
+				get_souls = get_souls_from_player,
+				add_souls = add_souls_to_player,
+				scalar = 0.5
+			}
 		end
 	end
-	return nil,1
+	return nil
 end
 
-function altar_lib.add_altar(altar)
+function altar_lib.add_altar(altar, storage_tank)
 	local altar_storage = storage.science_altars[altar.force.index][altar.surface.index]
-	altar_storage[altar.unit_number] = {
-		souls = 0,
-		kills = 0
+	altar_storage.altars[altar.unit_number] = {
+		storage_tank = storage_tank.unit_number
+	}
+	altar_storage.storage_tanks[storage_tank.unit_number] = {
+		altar = altar.unit_number
 	}
 end
 
 altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
 	if e.effect_id == "bitlab-science-altar-created" then
-		altar_lib.add_altar(e.source_entity)
+		-- The event is actually triggered by the 
+		local surface = game.get_surface(e.surface_index)
+		local altar = surface.create_entity{
+			name = "science-altar",
+			position = e.source_entity.position,
+			force = e.source_entity.force,
+			player = e.source_entity.last_user
+		}
+		altar_lib.add_altar(altar, e.entity)
+		script.register_on_object_destroyed(e.source_entity)
+		script.register_on_object_destroyed(altar)
 	end
 end
 
 function altar_lib.remove_altar(altar)
 	local altar_storage = storage.science_altars[altar.force.index][altar.surface.index]
 	altar_storage[altar.unit_number] = nil
+end
+
+altar_lib.events[defines.events.on_object_destroyed] = function(e)
+	if e.type ~= defines.target_type.entity then return end
+	local entity = game.get_entity_by_unit_number(e.useful_id)
+	if entity.name == "science-altar" then
+		altar_lib.remove_altar(entity)
+		local storage_tank = entity.surface.find_entity("science-altar-storage-tank")
+		storage_tank.destroy()
+	elseif entity.name == "science-altar-storage-tank" then
+		local altar = entity.surface.find_entity("science-altar", entity.position)
+		altar_lib.remove_altar(altar)
+		altar.destroy()
+	end
 end
 
 ------------------------------------------------------------------------------- Updating
@@ -157,7 +221,7 @@ end
 
 function altar_lib.update_altar(altar_data, altar)
 	local souls_per_blip = tq_lib.get_souls_per_blip(altar.force)
-	local blips = altar_data.souls / souls_per_blip
+	local blips = altar_data:get_souls() / souls_per_blip
 	-- BUG: blips always go towards the lower-ingredient techs... slow down updates as a bandaid
 
 	local tech_id = tq_lib.get_random_tech_index(altar)
@@ -184,11 +248,9 @@ function altar_lib.update_altar(altar_data, altar)
 				unit_amount = math.floor(units_left)
 			end
 
-			local kills = altar_data.kills * unit_amount * tech_blips / blips
-			tech_data.kills = tech_data.kills + kills
+			local souls_used = -altar_data:add_souls(-unit_amount * tech_blips * souls_per_blip)
 			tq_lib.progress_tech(tech, unit_amount)
-			altar_data.kills = math.max(altar_data.kills - kills, 0)
-			altar_data.souls = math.max(altar_data.souls - unit_amount * tech_blips * souls_per_blip, 0)
+			tech_data.souls = tech_data.souls + souls_used
 
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
 				altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})

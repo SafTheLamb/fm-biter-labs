@@ -1,7 +1,8 @@
-require("prototypes.science-altar")
-require("prototypes.particles")
+require("prototypes.fluid")
 require("prototypes.input")
+require("prototypes.science-altar")
 require("prototypes.soul-scouter")
+require("prototypes.particles")
 
 data.raw.item["lab"].hidden = true
 data.raw.recipe["lab"].hidden = true
