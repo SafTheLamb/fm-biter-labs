@@ -9,62 +9,59 @@ local altar_lib = {
 
 altar_lib.on_init = function()
 	storage.science_altars = {}
+	storage.altar_objects = {}
 	storage.player_souls = {}
-	for _,force in pairs(game.forces) do
-		altar_lib.init_force(force)
-	end
 	for _,player in pairs(game.players) do
 		altar_lib.init_player(player)
 	end
 end
 
-function altar_lib.init_force(force)
-	storage.science_altars[force.index] = {}
-	for _,surface in pairs(game.surfaces) do
-		altar_lib.init_surface(force, surface)
-	end
-end
-
-altar_lib.events[defines.events.on_force_created] = function(e)
-	altar_lib.init_force(e.force)
-end
-
 ------------------------------------------------------------------------------- Surfaces
 
-function altar_lib.init_surface(force, surface)
-	local altar_storage = storage.science_altars[force.index]
-	altar_storage[surface.index] = {}
-	local altars = surface.find_entities_filtered({force=force, type="lab", name="science-altar"})
+function altar_lib.init_surface(surface)
+	local altars = surface.find_entities_filtered({type="lab", name="bitlab-altar"})
 	for _,altar in pairs(altars or {}) do
 		altar_lib.add_altar(altar)
+		local tank = surface.find_entity({name="bitlab-tank"})
+		if not tank then
+
+		end
+		storage.altar_objects[altar.unit_number]
+		-- 
 	end
+	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-souls-tank"})
 end
 
 altar_lib.events[defines.events.on_surface_created] = function(e)
 	local surface = game.get_surface(e.surface_index)
-	for _,force in pairs(game.forces) do
-		altar_lib.init_surface(force, surface)
-	end
+	altar_lib.init_surface(surface)
 end
 
 altar_lib.events[defines.events.on_surface_imported] = function(e)
 	local surface = game.get_surface(e.surface_index)
-	for _,force in pairs(game.forces) do
-		altar_lib.init_surface(force, surface)
+	altar_lib.init_surface(surface)
+end
+
+function altar_lib.cleanup_surface(surface)
+	local altars = surface.find_entities_filtered({type="lab", name="science-altar"})
+	for _,altar in pairs(altars) do
+		storage.science_altars[altar.unit_number] = nil
+		storage.altar_objects[altar.unit_number] = nil
+	end
+	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-souls-tank"})
+	for _,tank in pairs(tanks) do
+		storage.altar_objects[tank.unit_number] = nil
 	end
 end
 
-altar_lib.events[defines.events.on_surface_cleared] = function(e)
+altar_lib.events[defines.events.on_pre_surface_cleared] = function(e)
 	local surface = game.get_surface(e.surface_index)
-	for _,force in pairs(game.forces) do
-		altar_lib.init_surface(force, surface)
-	end
+	altar_lib.cleanup_surface(surface)
 end
 
-altar_lib.events[defines.events.on_surface_deleted] = function(e)
-	for _,force in pairs(game.forces) do
-		storage.science_altars[force.index][e.surface_index] = nil
-	end
+altar_lib.events[defines.events.on_pre_surface_deleted] = function(e)
+	local surface = game.get_surface(e.surface_index)
+	altar_lib.cleanup_surface(surface)
 end
 
 ------------------------------------------------------------------------------- Players
@@ -88,19 +85,17 @@ end
 
 ------------------------------------------------------------------------------- Altar data
 
-local function get_souls_from_altar(self)
-	local altar_storage = storage.science_altars[self.altar.force.index][self.altar.surface.index]
-	local storage_tank = game.get_entity_by_unit_number(altar_storage.altars[self.altar.unit_number].storage_tank)
-	return storage_tank.get_fluid_count("bitlab-souls")
+local function get_souls_from_tank(self)
+	local tank = game.get_entity_by_unit_number(self.tank_id)
+	return tank.get_fluid_count("bitlab-souls")
 end
 
-local function add_souls_to_altar(self, amount)
-	local altar_storage = storage.science_altars[self.altar.force.index][self.altar.surface.index]
-	local storage_tank = game.get_entity_by_unit_number(altar_storage.altars[self.altar.unit_number].storage_tank)
+local function add_souls_to_tank(self, amount)
+	local tank = game.get_entity_by_unit_number(self.tank_id)
 	if amount > 0 then
-		return storage_tank.insert_fluid({name="bitlab-souls", amount=amount * (self.scalar or 1)})
+		return tank.insert_fluid({name="bitlab-souls", amount=amount * (self.scalar or 1)})
 	else
-		return storage_tank.remove_fluid{name="bitlab-souls", amount=amount}
+		return -tank.remove_fluid{name="bitlab-souls", amount=-amount}
 	end
 end
 
@@ -116,27 +111,32 @@ local function add_souls_to_player(self, amount)
 	return (player_storage.souls - old_souls)
 end
 
--- returns: {:get_souls() -> amount, :add_souls(amount) -> actual_amount}
-function altar_lib.get_altar_data(altar)
-	if altar then
-		if altar.type == "lab" then
-			-- return storage.science_altars[altar.force.index][altar.surface.index][altar.unit_number],1
+-- returns: {:get_souls() -> amount, :add_souls(amount) -> added_amount}
+function altar_lib.get_altar_data(entity)
+	if entity then
+		if entity.name == "bitlab-tank" then
 			return {
-				altar = altar,
-				get_souls = get_souls_from_altar,
-				add_souls = add_souls_to_altar
+				tank_id = entity.unit_number,
+				get_souls = get_souls_from_tank,
+				add_souls = add_souls_to_tank
 			}
-		elseif altar.type == "character" then
-			if altar.player ~= nil then
+		elseif entity.name == "bitlab-altar" then
+			return {
+				tank_id = storage.altar_objects[entity.unit_number].tank_id,
+				get_souls = get_souls_from_tank,
+				add_souls = add_souls_to_tank
+			}
+		elseif entity.type == "character" then
+			if entity.player ~= nil then
 				return {
-					player_index = altar.player.index,
+					player_index = entity.player.index,
 					get_souls = get_souls_from_player,
 					add_souls = add_souls_to_player
 				}
 			end
-		elseif altar.type == "car" or altar.type == "spider-vehicle" then
+		elseif entity.type == "car" or entity.type == "spider-vehicle" then
 			-- Use the driver if the gunner is automatic (idk if that's possible but who cares)
-			local killer = not altar.driver_is_gunner and altar.get_passenger() or altar.get_driver()
+			local killer = not entity.driver_is_gunner and entity.get_passenger() or entity.get_driver()
 			-- only give souls to players physically inside the vehicle
 			if not killer or killer.is_player() or killer.type ~= "character" then
 				return nil
@@ -152,74 +152,53 @@ function altar_lib.get_altar_data(altar)
 	return nil
 end
 
-function altar_lib.add_altar(altar, storage_tank)
-	local altar_storage = storage.science_altars[altar.force.index][altar.surface.index]
-	altar_storage.altars[altar.unit_number] = {
-		storage_tank = storage_tank.unit_number
-	}
-	altar_storage.storage_tanks[storage_tank.unit_number] = {
-		altar = altar.unit_number
-	}
-end
-
 altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
-	if e.effect_id == "bitlab-science-altar-created" then
-		-- The event is actually triggered by the 
+	if e.effect_id == "bitlab-tank-created" then
+		-- The event is actually triggered by the storage tank
 		local surface = game.get_surface(e.surface_index)
 		local altar = surface.create_entity{
-			name = "science-altar",
+			name = "bitlab-altar",
 			position = e.source_entity.position,
 			force = e.source_entity.force,
 			player = e.source_entity.last_user
 		}
-		altar_lib.add_altar(altar, e.entity)
+		storage.altar_objects[e.source_entity.unit_number] = {altar_id=altar.unit_number}
+		storage.altar_objects[altar.unit_number] = {tank_id=e.source_entity.unit_number}
+		storage.science_altars[altar.unit_number] = {tank_id=e.source_entity.unit_number}
+
+		assert(surface.find_entity("bitlab-tank", altar.position))
+		assert(surface.find_entity("bitlab-altar", altar.position))
+
 		script.register_on_object_destroyed(e.source_entity)
 		script.register_on_object_destroyed(altar)
 	end
 end
 
-function altar_lib.remove_altar(altar)
-	local altar_storage = storage.science_altars[altar.force.index][altar.surface.index]
-	altar_storage[altar.unit_number] = nil
-end
 
 altar_lib.events[defines.events.on_object_destroyed] = function(e)
 	if e.type ~= defines.target_type.entity then return end
-	local entity = game.get_entity_by_unit_number(e.useful_id)
-	if entity.name == "science-altar" then
-		altar_lib.remove_altar(entity)
-		local storage_tank = entity.surface.find_entity("science-altar-storage-tank")
-		storage_tank.destroy()
-	elseif entity.name == "science-altar-storage-tank" then
-		local altar = entity.surface.find_entity("science-altar", entity.position)
-		altar_lib.remove_altar(altar)
-		altar.destroy()
+	local object_data = storage.altar_objects[e.useful_id]
+	if object_data then
+		if object_data.altar_id then
+			local altar = game.get_entity_by_unit_number(object_data.altar_id)
+			if altar then
+				storage.altar_objects[altar.unit_number] = nil
+				altar.destroy()
+			end
+		elseif object_data.tank_id then
+			local tank = game.get_entity_by_unit_number(object_data.tank_id)
+			if tank then
+				storage.altar_objects[tank.unit_number] = nil
+				tank.destroy()
+			end
+		end
 	end
+	storage.altar_objects[e.useful_id] = nil
 end
 
 ------------------------------------------------------------------------------- Updating
 
-altar_lib.on_nth_tick[60] = function(e)
-	for _,force in pairs(game.forces) do
-		if not force.research_enabled then goto continue end
-		local force_altars = storage.science_altars[force.index]
-
-		for _,surface in pairs(game.surfaces) do
-			for unit_number,altar_data in pairs(force_altars[surface.index]) do
-				local altar = game.get_entity_by_unit_number(unit_number)
-				if not altar then
-					force_altars[surface.index][unit_number] = nil
-					break
-				end
-				altar_lib.update_altar(altar_data, altar)
-			end
-		end
-
-		::continue::
-	end
-end
-
-function altar_lib.update_altar(altar_data, altar)
+function altar_lib.update_altar(altar, altar_data)
 	local souls_per_blip = tq_lib.get_souls_per_blip(altar.force)
 	local blips = altar_data:get_souls() / souls_per_blip
 	-- BUG: blips always go towards the lower-ingredient techs... slow down updates as a bandaid
@@ -257,6 +236,11 @@ function altar_lib.update_altar(altar_data, altar)
 			end
 			return true
 		end
+	end
+end
+
+altar_lib.on_nth_tick[60] = function(e)
+	local _,altar_id in pairs(storage.science_altars) do
 	end
 end
 

@@ -10,11 +10,11 @@ local magazine_ingredient = "firearm-magazine"
 data:extend({
 	{
 		type = "item",
-		name = "science-altar",
+		name = "bitlab-altar",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		subgroup = "production-machine",
 		order = "zb[science-altar]",
-		place_result = "science-altar-storage-tank",
+		place_result = "bitlab-tank",
 		inventory_move_sound = item_sounds.lab_inventory_move,
 		pick_sound = item_sounds.lab_inventory_pickup,
 		drop_sound = item_sounds.lab_inventory_move,
@@ -22,25 +22,24 @@ data:extend({
 	},
 	{
 		type = "recipe",
-		name = "science-altar",
+		name = "bitlab-altar",
 		energy_required = 2,
 		ingredients = {
 			{type="item", name="electronic-circuit", amount=10},
 			{type="item", name="stone-brick", amount=10},
 			{type="item", name=magazine_ingredient, amount=5}
 		},
-		results = {{type="item", name="science-altar", amount=1}}
+		results = {{type="item", name="bitlab-altar", amount=1}}
 	},
 	{
 		type = "lab",
-		name = "science-altar",
+		name = "bitlab-altar",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
-		minable = {mining_time = 1, result = "science-altar"},
+		minable = {mining_time = 1, result = "bitlab-altar"},
 		is_military_target = true,
-		corpse = "science-altar-remnants",
-		dying_explosion = "lab-explosion",
 		collision_mask = {layers = {}},
+		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
 		selection_box = {{-2, -2}, {2, 1}},
 		damaged_trigger_effect = hit_effects.entity(),
 		working_sound = {
@@ -68,10 +67,12 @@ data:extend({
 	},
 	{
 		type = "storage-tank",
-		name = "science-altar-storage-tank",
+		name = "bitlab-tank",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
-		minable = {mining_time = 1, result = "science-altar"},
+		minable = {mining_time = 1, result = "bitlab-altar"},
+		corpse = "bitlab-altar-remnants",
+		dying_explosion = "lab-explosion",
 		max_health = 250,
 		damaged_trigger_effect = hit_effects.entity(),
 		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
@@ -99,7 +100,7 @@ data:extend({
 				type = "instant",
 				source_effects = {
 					type = "script",
-					effect_id = "bitlab-science-altar-created"
+					effect_id = "bitlab-tank-created"
 				}
 			}
 		},
@@ -180,7 +181,7 @@ data:extend({
 	},
 	{
 		type = "corpse",
-		name = "science-altar-remnants",
+		name = "bitlab-altar-remnants",
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-neutral", "not-on-map"},
 		hidden_in_factoriopedia = true,

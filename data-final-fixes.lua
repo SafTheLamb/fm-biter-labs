@@ -4,29 +4,29 @@ local utibl = require("__biter-labs__.scripts.bitlab-util")
 
 local techs = ftech.find_by_unlock("lab")
 for _,tech_name in pairs(techs) do
-	ftech.replace_unlock(tech_name, "lab", "science-altar")
-	data.raw.recipe["science-altar"].enabled = false
+	ftech.replace_unlock(tech_name, "lab", "bitlab-altar")
+	data.raw.recipe["bitlab-altar"].enabled = false
 end
 local burner_techs = ftech.find_by_unlock("burner-lab")
 for _,tech_name in pairs(burner_techs) do
-	ftech.replace_unlock(tech_name, "burner-lab", "science-altar")
-	data.raw.recipe["science-altar"].enabled = false
+	ftech.replace_unlock(tech_name, "burner-lab", "bitlab-altar")
+	data.raw.recipe["bitlab-altar"].enabled = false
 end
 
 for _,tech in pairs(data.raw.technology) do
 	if tech.research_trigger and (tech.research_trigger.item == "lab" or tech.research_trigger.item == "burner-lab") then
-		tech.research_trigger.item = "science-altar"
+		tech.research_trigger.item = "bitlab-altar"
 	end
 end
 
 local recipes = frep.find_by_ingredient("lab")
 for _,recipe_name in pairs(recipes) do
-	frep.replace_ingredient(recipe_name, "lab", "science-altar")
+	frep.replace_ingredient(recipe_name, "lab", "bitlab-altar")
 end
 if mods["aai-industry"] then
 	local burner_recipes = frep.find_by_ingredient("burner-lab")
 	for _,recipe_name in pairs(burner_recipes) do
-		frep.replace_ingredient(recipe_name, "burner-lab", "science-altar")
+		frep.replace_ingredient(recipe_name, "burner-lab", "bitlab-altar")
 	end
 end
 
@@ -58,7 +58,7 @@ for _,fish in pairs(data.raw.fish) do
 					end
 					fish_with_souls[fish.name.."-eat"] = fish.max_health ^ 0.9
 					fish_with_souls[fish.name.."-kill"] = math.sqrt(math.max(amount, 0))
-					table.insert(data.raw["selection-tool"]["biter-labs-soul-scouter"].alt_select.entity_filters, fish.name)
+					table.insert(data.raw["selection-tool"]["bitlab-soul-scouter"].alt_select.entity_filters, fish.name)
 				end
 			end
 		end

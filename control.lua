@@ -28,7 +28,7 @@ end
 local function on_entity_died(e)
 	if not (e.force and e.force.research_enabled) then return end
 
-	if e.entity.name == "science-altar-storage-tank" then
+	if e.entity.name == "bitlab-tank" then
 		on_science_altar_destroyed(e)
 		return
 	end

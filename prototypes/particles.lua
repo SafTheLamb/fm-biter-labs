@@ -54,14 +54,14 @@ end
 
 data:extend({
 	make_particle{
-		name = "soul-leaving",
+		name = "bitlab-soul-leaving",
 		pictures = get_soul_particle({1,0,1}),
 		life_time = 30,
 		fade_away_duration = 15,
 		vertical_acceleration = -0.003,
 	},
 	make_particle{
-		name = "soul-collecting",
+		name = "bitlab-soul-entering",
 		pictures = get_soul_particle({1,0,1}),
 		life_time = 30,
 		fade_away_duration = 15,
