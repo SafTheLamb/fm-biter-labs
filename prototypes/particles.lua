@@ -61,7 +61,7 @@ data:extend({
 		vertical_acceleration = -0.003,
 	},
 	make_particle{
-		name = "bitlab-soul-entering",
+		name = "bitlab-soul-collecting",
 		pictures = get_soul_particle({1,0,1}),
 		life_time = 30,
 		fade_away_duration = 15,

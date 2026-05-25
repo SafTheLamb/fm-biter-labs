@@ -29,7 +29,7 @@ function ts_lib.spawn_souls_leaving(entity, count)
 	count = math.min(count, 1000)
 	for i=1,count do
 		entity.surface.create_particle{
-			name = "soul-leaving",
+			name = "bitlab-soul-leaving",
 			position = entity.position,
 			height = 1,
 			movement = {
@@ -50,7 +50,7 @@ function ts_lib.spawn_souls_collecting(entity, count)
 			y = 1.5 - 3 * math.random()
 		}
 		entity.surface.create_particle{
-			name = "soul-collecting",
+			name = "bitlab-soul-collecting",
 			position = {entity.position.x + offset.x, entity.position.y + offset.y},
 			height = 2,
 			movement = {-offset.x * 0.05, -offset.y * 0.05},
@@ -65,7 +65,7 @@ function ts_lib.add_souls_from_kill(force, killer, entity, damage_scale)
 	local altar = killer
 	local altar_data = altar_lib.get_altar_data(killer)
 	if not altar_data then
-		local altars = entity.surface.find_entities_filtered{force=force, position=(killer or entity).position, radius=32, type="lab", name="science-altar"}
+		local altars = entity.surface.find_entities_filtered{force=force, position=(killer or entity).position, radius=32, type="lab", name="bitlab-altar"}
 		if next(altars) then
 			altar = altars[math.random(#altars)]
 			altar_data = altar_lib.get_altar_data(altar)
@@ -100,44 +100,48 @@ end
 
 ts_lib.on_nth_tick[6] = function(e)
 	for _,player in pairs(game.players) do
-		local player_altar_data = altar_lib.get_altar_data(player)
-		if player.character and player_altar_data:get_souls() > 0 then
-			local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="science-altar"}
-			if next(altars) then
-				local altar = altars[math.random(#altars)]
-				local altar_data = altar_lib.get_altar_data(altar)
-				local player_souls = player_altar_data:get_souls()
-				
-				local souls_transferred = altar_data:add_souls(math.min(player_souls, math.sqrt(math.max(player_souls, 0))))
-				player_altar_data:add_souls(-souls_transferred)
+		if player.character then
+			local player_altar_data = altar_lib.get_altar_data(player.character)
+			if player.character and player_altar_data:get_souls() >= 1 then
+				local altars = player.character.surface.find_entities_filtered{force=player.force, position=player.character.position, radius=32, type="lab", name="bitlab-altar"}
+				if next(altars) then
+					local altar = altars[math.random(#altars)]
+					local altar_data = altar_lib.get_altar_data(altar)
+					local player_souls = player_altar_data:get_souls()
+					
+					local souls_transferred = altar_data:add_souls(math.min(player_souls, math.sqrt(math.max(player_souls, 0))))
+					if souls_transferred then
+						player_altar_data:add_souls(-souls_transferred)
 
-				local num_particles = math.max(math.sqrt(souls_transferred / tq_lib.get_souls_per_blip(player.force)), 1)
-				ts_lib.spawn_souls_collecting(altar, num_particles)
-				ts_lib.spawn_souls_leaving(player, num_particles)
+						local num_particles = math.max(math.sqrt(souls_transferred / tq_lib.get_souls_per_blip(player.force)), 1)
+						ts_lib.spawn_souls_collecting(altar, num_particles)
+						ts_lib.spawn_souls_leaving(player, num_particles)
+					end
+				end
 			end
 		end
 	end
 end
 
-commands.add_command("bitlab-reset-player-souls", {"biter-labs-ui.reset-player-souls-help"}, function(e)
+commands.add_command("bitlab-reset-player-souls", {"bitlab-ui.reset-player-souls-help"}, function(e)
 	local player = game.get_player(e.player_index)
 	if player and not player.admin then
-		player.print({"biter-labs-ui.command-admin"})
+		player.print({"bitlab-ui.command-admin"})
 		return
 	end
 	if e.parameter == "confirm" then
 		if player then
-			utibl.print(player, {"biter-labs-ui.reset-player-souls-warning"})
+			utibl.print(player, {"bitlab-ui.reset-player-souls-warning"})
 		end
 		return
 	elseif e.parameter == "CONFIRM!" then
 		for _,player in pairs(game.players) do
 			storage.player_souls[player.index].souls = 0
 		end
-		game.print({"biter-labs-ui.reset-player-souls-confirmed"})
+		game.print({"bitlab-ui.reset-player-souls-confirmed"})
 		return
 	end
-	utibl.print(player, {"biter-labs-ui.command-error", e.name})
+	utibl.print(player, {"bitlab-ui.command-error", e.name})
 end)
 
 return ts_lib

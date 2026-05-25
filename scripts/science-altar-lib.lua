@@ -22,14 +22,25 @@ function altar_lib.init_surface(surface)
 	local altars = surface.find_entities_filtered({type="lab", name="bitlab-altar"})
 	for _,altar in pairs(altars or {}) do
 		altar_lib.add_altar(altar)
-		local tank = surface.find_entity({name="bitlab-tank"})
+		local tank = surface.find_entity("bitlab-tank", altar.position)
 		if not tank then
-
+			tank = surface.create_entity{
+				name = "bitlab-tank",
+				position = altar.position,
+				player = altar.player,
+				force = altar.force,
+				quality = altar.quality
+			}
 		end
-		storage.altar_objects[altar.unit_number]
-		-- 
+		altar.destructible = false
+		storage.science_altars[altar.unit_number] = {tank_id = tank.id}
+		storage.altar_objects[altar.unit_number] = {tank_id = tank.id}
+		storage.altar_objects[tank.unit_number] = {altar_id = altar.id}
 	end
-	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-souls-tank"})
+	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-tank"})
+	for _,tank in pairs(tanks or {}) do
+		assert(storage.altar_objects[tank.unit_number])
+	end
 end
 
 altar_lib.events[defines.events.on_surface_created] = function(e)
@@ -43,12 +54,12 @@ altar_lib.events[defines.events.on_surface_imported] = function(e)
 end
 
 function altar_lib.cleanup_surface(surface)
-	local altars = surface.find_entities_filtered({type="lab", name="science-altar"})
+	local altars = surface.find_entities_filtered({type="lab", name="bitlab-altar"})
 	for _,altar in pairs(altars) do
 		storage.science_altars[altar.unit_number] = nil
 		storage.altar_objects[altar.unit_number] = nil
 	end
-	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-souls-tank"})
+	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-tank"})
 	for _,tank in pairs(tanks) do
 		storage.altar_objects[tank.unit_number] = nil
 	end
@@ -92,9 +103,9 @@ end
 
 local function add_souls_to_tank(self, amount)
 	local tank = game.get_entity_by_unit_number(self.tank_id)
-	if amount > 0 then
+	if amount >= 1 then
 		return tank.insert_fluid({name="bitlab-souls", amount=amount * (self.scalar or 1)})
-	else
+	elseif amount <= -1 then
 		return -tank.remove_fluid{name="bitlab-souls", amount=-amount}
 	end
 end
@@ -153,15 +164,19 @@ function altar_lib.get_altar_data(entity)
 end
 
 altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
+	-- The event is handled by the souls tank since it's the entity with collision
 	if e.effect_id == "bitlab-tank-created" then
-		-- The event is actually triggered by the storage tank
+		-- Make sure this wasn't spawned due to a legacy science altar
 		local surface = game.get_surface(e.surface_index)
+		if surface.find_entity("bitlab-altar", e.source_entity.position) then return end
 		local altar = surface.create_entity{
 			name = "bitlab-altar",
 			position = e.source_entity.position,
 			force = e.source_entity.force,
-			player = e.source_entity.last_user
+			player = e.source_entity.last_user,
+			quality = e.source_entity.quality
 		}
+		altar.destructible = false
 		storage.altar_objects[e.source_entity.unit_number] = {altar_id=altar.unit_number}
 		storage.altar_objects[altar.unit_number] = {tank_id=e.source_entity.unit_number}
 		storage.science_altars[altar.unit_number] = {tank_id=e.source_entity.unit_number}
@@ -174,23 +189,22 @@ altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
 	end
 end
 
-
 altar_lib.events[defines.events.on_object_destroyed] = function(e)
 	if e.type ~= defines.target_type.entity then return end
 	local object_data = storage.altar_objects[e.useful_id]
 	if object_data then
 		if object_data.altar_id then
 			local altar = game.get_entity_by_unit_number(object_data.altar_id)
-			if altar then
-				storage.altar_objects[altar.unit_number] = nil
-				altar.destroy()
-			end
+			if altar then altar.destroy() end
+			storage.altar_objects[object_data.altar_id] = nil
+			storage.science_altars[object_data.altar_id] = nil
 		elseif object_data.tank_id then
 			local tank = game.get_entity_by_unit_number(object_data.tank_id)
 			if tank then
-				storage.altar_objects[tank.unit_number] = nil
 				tank.destroy()
 			end
+			storage.altar_objects[object_data.tank_id] = nil
+			storage.science_altars[e.useful_id] = nil
 		end
 	end
 	storage.altar_objects[e.useful_id] = nil
@@ -240,7 +254,13 @@ function altar_lib.update_altar(altar, altar_data)
 end
 
 altar_lib.on_nth_tick[60] = function(e)
-	local _,altar_id in pairs(storage.science_altars) do
+	for altar_id,altar_metadata in pairs(storage.science_altars) do
+		local altar = game.get_entity_by_unit_number(altar_id)
+		altar_lib.update_altar(altar, {
+			tank_id = altar_metadata.tank_id,
+			get_souls = get_souls_from_tank,
+			add_souls = add_souls_to_tank
+		})
 	end
 end
 

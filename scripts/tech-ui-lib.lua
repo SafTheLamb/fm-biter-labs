@@ -9,8 +9,8 @@ local tu_lib = {
 ------------------------------------------------------------------------------- Initialization
 
 function tu_lib.open_tech_leaderboard(player)
-	if player.gui.screen["biter-labs-research-leaderboard"] then return end
-	local leaderboard = player.gui.screen.add{type="flow", name="biter-labs-research-leaderboard", direction="vertical"}
+	if player.gui.screen["bitlab-research-leaderboard"] then return end
+	local leaderboard = player.gui.screen.add{type="flow", name="bitlab-research-leaderboard", direction="vertical"}
 	leaderboard.style.minimal_width = 0
 	leaderboard.style.minimal_height = 0
 	leaderboard.style.maximal_width = player.display_resolution.width*0.5
@@ -19,13 +19,13 @@ function tu_lib.open_tech_leaderboard(player)
 	leaderboard.style.vertical_align = "top"
 	leaderboard.location = {0.1*player.display_resolution.width,0.1*player.display_resolution.height}
 	tu_lib.update_tech_leaderboard(player)
-	player.set_shortcut_toggled("biter-labs-open-research-leaderboard", true)
+	player.set_shortcut_toggled("bitlab-open-research-leaderboard", true)
 end
 
 function tu_lib.close_tech_leaderboard(player)
-	assert(player.gui.screen["biter-labs-research-leaderboard"] ~= nil)
-	player.gui.screen["biter-labs-research-leaderboard"].destroy()
-	player.set_shortcut_toggled("biter-labs-open-research-leaderboard", false)
+	assert(player.gui.screen["bitlab-research-leaderboard"] ~= nil)
+	player.gui.screen["bitlab-research-leaderboard"].destroy()
+	player.set_shortcut_toggled("bitlab-open-research-leaderboard", false)
 end
 
 tu_lib.events[defines.events.on_player_created] = function(e)
@@ -51,7 +51,7 @@ function tu_lib.get_tech_name(tech)
 end
 
 function tu_lib.update_tech_leaderboard(player)
-	local leaderboard = player.gui.screen["biter-labs-research-leaderboard"]
+	local leaderboard = player.gui.screen["bitlab-research-leaderboard"]
 	if not leaderboard then return end
 	leaderboard.style.minimal_width = 0
 	leaderboard.style.minimal_height = 0
@@ -66,7 +66,7 @@ function tu_lib.update_tech_leaderboard(player)
 		local tech_data = tq_lib.get_tech_data(player.force, tech_id)
 		local tech = player.force.technologies[tech_data.name]
 		local tech_name = tu_lib.get_tech_name(tech)
-		local label = leaderboard.add{type="label", name="tech-"..i, caption={"biter-labs-ui.leaderboard-tech", i, tech_data.name, tech_name, math.max(0.1 * math.floor(1000 * tech.saved_progress), 0.1)}}
+		local label = leaderboard.add{type="label", name="tech-"..i, caption={"bitlab-ui.leaderboard-tech", i, tech_data.name, tech_name, math.max(0.1 * math.floor(1000 * tech.saved_progress), 0.1)}}
 		label.style.font_color = {0,1,0}
 	end
 end
@@ -77,9 +77,9 @@ tu_lib.on_nth_tick[60] = function(e)
 	end
 end
 
-tu_lib.events["biter-labs-open-research-leaderboard"] = function(e)
+tu_lib.events["bitlab-open-research-leaderboard"] = function(e)
 	local player = game.get_player(e.player_index)
-	if player.is_shortcut_toggled("biter-labs-open-research-leaderboard") then
+	if player.is_shortcut_toggled("bitlab-open-research-leaderboard") then
 		tu_lib.close_tech_leaderboard(player)
 	else
 		tu_lib.open_tech_leaderboard(player)
@@ -87,9 +87,9 @@ tu_lib.events["biter-labs-open-research-leaderboard"] = function(e)
 end
 
 tu_lib.events[defines.events.on_lua_shortcut] = function(e)
-	if e.prototype_name == "biter-labs-open-research-leaderboard" then
+	if e.prototype_name == "bitlab-open-research-leaderboard" then
 		local player = game.get_player(e.player_index)
-		if player.is_shortcut_toggled("biter-labs-open-research-leaderboard") then
+		if player.is_shortcut_toggled("bitlab-open-research-leaderboard") then
 			tu_lib.close_tech_leaderboard(player)
 		else
 			tu_lib.open_tech_leaderboard(player)
@@ -102,19 +102,19 @@ end
 function tu_lib.scout_souls(e)
 	if not next(e.entities) then return end
 	local player = game.get_player(e.player_index)
-	if not player.force.technologies["biter-labs-soul-scouter"].researched then return end
+	if not player.force.technologies["bitlab-soul-scouter"].researched then return end
 
 	local souls = 0
 	for _,entity in pairs(e.entities) do
 		souls = souls + ts_lib.get_soul_value(entity)
 	end
 
-	player.print({"biter-labs-ui.soul-scouter-reading", #e.entities, math.floor(souls)},
+	player.print({"bitlab-ui.soul-scouter-reading", #e.entities, math.floor(souls)},
 		{color={1,0,1}, sound=defines.print_sound.never, skip=defines.print_skip.never, game_state=false})
 end
 
 function tu_lib.on_player_selected_area(e)
-	if e.item == "biter-labs-soul-scouter" then
+	if e.item == "bitlab-soul-scouter" then
 		tu_lib.scout_souls(e)
 	end
 end
@@ -126,8 +126,8 @@ tu_lib.events[defines.events.on_player_alt_reverse_selected_area] = tu_lib.on_pl
 
 tu_lib.events[defines.events.on_player_cursor_stack_changed] = function(e)
 	local player = game.get_player(e.player_index)
-	if not player.force.technologies["biter-labs-soul-scouter"].researched then
-		if player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == "biter-labs-soul-scouter" then
+	if not player.force.technologies["bitlab-soul-scouter"].researched then
+		if player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == "bitlab-soul-scouter" then
 			player.cursor_stack.clear()
 		end
 	end

@@ -76,7 +76,8 @@ data:extend({
 		max_health = 250,
 		damaged_trigger_effect = hit_effects.entity(),
 		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
-		selection_box = {{-2, 1}, {2, 2}},
+		selection_box = {{-2, -2}, {2, 2}},
+		selection_priority = 49,
 		icon_draw_specification = {scale=0},
 		fluid_box = {
 			volume = 25000,

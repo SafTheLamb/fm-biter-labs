@@ -87,7 +87,7 @@ end
 
 function tq_lib.print_queue(force)
 	local tech_queue = storage.tech_queue[force.index]
-	force.print({"biter-labs-ui.research-queue-print", force.name})
+	force.print({"bitlab-ui.research-queue-print", force.name})
 	for tech_id,tech_data in pairs(tech_queue) do
 		if type(tech_id) == "number" then
 			force.print(tech_id..':'..tech_data.name..", souls="..tech_data.souls)
@@ -233,9 +233,9 @@ function tq_lib.research_tech(tech)
 		}
 		kills = math.max(math.floor(kills + 0.5), 1)
 		if kills == 1 then
-			player_force.print({"biter-labs-ui.technology-researched-one", tech.name}, print_settings)
+			player_force.print({"bitlab-ui.technology-researched-one", tech.name}, print_settings)
 		else
-			player_force.print({"biter-labs-ui.technology-researched", tech.name, kills}, print_settings)
+			player_force.print({"bitlab-ui.technology-researched", tech.name, kills}, print_settings)
 		end
 	end
 
@@ -261,13 +261,13 @@ tq_lib.events[defines.events.on_research_started] = function(e)
 	-- Never let players queue technologies
 	local player_force = e.research.force
 	player_force.research_queue = nil
-	player_force.print({"biter-labs-ui.research-queue-disabled"})
+	player_force.print({"bitlab-ui.research-queue-disabled"})
 end
 
 tq_lib.events[defines.events.on_research_queued] = function(e)
 	-- Never let players queue technologies
 	e.force.research_queue = nil
-	e.force.print({"biter-labs-ui.research-queue-disabled"})
+	e.force.print({"bitlab-ui.research-queue-disabled"})
 end
 
 function tq_lib.on_research_finished(tech)
@@ -324,10 +324,10 @@ tq_lib.on_nth_tick[1] = function(e)
 	end
 end
 
-commands.add_command("bitlab-research-queue", {"biter-labs-ui.research-queue-help"}, function(e)
+commands.add_command("bitlab-research-queue", {"bitlab-ui.research-queue-help"}, function(e)
 	local player = game.get_player(e.player_index)
 	if player and not player.admin then
-		player.print({"biter-labs-ui.command-admin"})
+		player.print({"bitlab-ui.command-admin"})
 		return
 	end
 	if type(e.parameter) == "string" then
@@ -338,14 +338,14 @@ commands.add_command("bitlab-research-queue", {"biter-labs-ui.research-queue-hel
 			end
 			return
 		elseif e.parameter == "reset" then
-			game.print({"biter-labs-ui.research-queue-reset"})
+			game.print({"bitlab-ui.research-queue-reset"})
 			for _,force in pairs(forces) do
 				tq_lib.reset_queue(force)
 			end
 			return
 		end
 	end
-	utibl.print(player, {"biter-labs-ui.command-error", e.name})
+	utibl.print(player, {"bitlab-ui.command-error", e.name})
 end)
 
 return tq_lib
