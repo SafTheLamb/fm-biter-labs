@@ -61,9 +61,9 @@ data:extend({
 		inputs = data.raw.lab["lab"].inputs,
 		-- module_slots = 2,
 		icons_positioning = {
-			{inventory_index = defines.inventory.lab_modules, shift = {0, 0.9}},
-			{inventory_index = defines.inventory.lab_input, shift = {0, 0}, max_icons_per_row = 4, separation_multiplier = 1/1.1}
-		},
+			{inventory_index = defines.inventory.lab_modules, shift = {0, 0.4}},
+			{inventory_index = defines.inventory.lab_input, shift = {0, -0.5}, max_icons_per_row = 4, separation_multiplier = 1/1.1}
+		}
 	},
 	{
 		type = "storage-tank",
@@ -93,7 +93,7 @@ data:extend({
 			hide_connection_info = true
 		},
 		two_direction_only = true,
-		window_bounding_box = {{-0.125, 0.6875}, {0.1875, 1.1875}},
+		window_bounding_box = {{-0.125*4/3, 0.875*4/3}, {0.1875*4/3, 1.375*4/3}},
 		-- The item actually places science altar storage tank, so that it can be rotated
 		created_effect = {
 			type = "direct",
@@ -114,13 +114,6 @@ data:extend({
 						width = 196,
 						height = 219,
 						shift = util.by_pixel(0, 1.5*4/3),
-						scale = 2/3
-					},
-					{
-						filename = "__base__/graphics/entity/lab/lab-integration.png",
-						width = 242,
-						height = 162,
-						shift = util.by_pixel(0, 15.5*4/3),
 						scale = 2/3
 					},
 					{
@@ -147,20 +140,22 @@ data:extend({
 				filename = "__base__/graphics/entity/storage-tank/fluid-background.png",
 				priority = "extra-high",
 				width = 32,
-				height = 15
+				height = 15,
+				scale = 4/3
 			},
 			window_background = {
 				filename = "__base__/graphics/entity/storage-tank/window-background.png",
 				priority = "extra-high",
 				width = 34,
 				height = 48,
-				scale = 0.5
+				scale = 0.5*4/3
 			},
 			flow_sprite = {
 				filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
 				priority = "extra-high",
 				width = 160,
-				height = 20
+				height = 20,
+				scale = 4/3
 			},
 			gas_flow = {
 				filename = "__base__/graphics/entity/pipe/steam.png",
@@ -170,7 +165,7 @@ data:extend({
 				height = 30,
 				frame_count = 60,
 				animation_speed = 0.25,
-				scale = 0.5
+				scale = 0.5*4/3
 			}
 		},
 		flow_length_in_ticks = 360,
@@ -179,6 +174,27 @@ data:extend({
 			match_volume_to_activity = true,
 			max_sounds_per_prototype = 3
 		},
+		circuit_connector = circuit_connector_definitions.create_vector(universal_connector_template, {
+			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true }
+		}),
+		circuit_wire_max_distance = default_circuit_wire_max_distance,
+		water_reflection = {
+			pictures =
+			{
+				filename = "__base__/graphics/entity/storage-tank/storage-tank-reflection.png",
+				priority = "extra-high",
+				width = 24,
+				height = 24,
+				shift = util.by_pixel(5*4/3, 35*4/3),
+				variation_count = 1,
+				scale = 5*4/3
+			},
+			rotate = false,
+			orientation_to_variation = false
+		}
 	},
 	{
 		type = "corpse",

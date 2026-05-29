@@ -79,7 +79,6 @@ end
 
 function altar_lib.init_player(player)
 	assert(player)
-	assert(not storage.player_souls[player.index])
 	storage.player_souls[player.index] = {
 		souls = 0
 	}
