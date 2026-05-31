@@ -2,11 +2,6 @@ local hit_effects = require("__base__.prototypes.entity.hit-effects")
 local item_sounds = require("__base__.prototypes.item_sounds")
 local sounds = require("__base__.prototypes.entity.sounds")
 
-local magazine_ingredient = "firearm-magazine"
--- if mods["wood-military"] and settings.startup["wood-military-smg-ammo"].value then
--- 	magazine_ingredient = "wood-darts-magazine"
--- end
-
 data:extend({
 	{
 		type = "item",
@@ -27,7 +22,7 @@ data:extend({
 		ingredients = {
 			{type="item", name="electronic-circuit", amount=10},
 			{type="item", name="stone-brick", amount=10},
-			{type="item", name=magazine_ingredient, amount=5}
+			{type="item", name="firearm-magazine", amount=5}
 		},
 		results = {{type="item", name="bitlab-altar", amount=1}}
 	},
@@ -82,7 +77,6 @@ data:extend({
 		fluid_box = {
 			volume = 25000,
 			filter = "bitlab-souls",
-			pipe_picture = assembler2pipepictures(),
 			pipe_covers = pipecoverspictures(),
 			pipe_connections = {
 				{ direction = defines.direction.north, position = {-1.5, -1.5}},
@@ -108,16 +102,34 @@ data:extend({
 		-- Give the storage tank the pictures. The lab on_animation never actually animates anyway
 		pictures = {
 			picture = {
-				layers = {
+				sheets = {
+					{
+						filename = "__biter-labs__/graphics/entity/science-altar/top-patch.png",
+						frames = 2,
+						width = 256,
+						height = 120,
+						shift = util.by_pixel(0, 1.5*4/3 - 48),
+						scale = 0.5
+					},
 					{
 						filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
+						frames = 1,
 						width = 196,
 						height = 219,
 						shift = util.by_pixel(0, 1.5*4/3),
 						scale = 2/3
 					},
 					{
+						filename = "__biter-labs__/graphics/entity/science-altar/bottom-patch.png",
+						frames = 2,
+						width = 264,
+						height = 128,
+						shift = util.by_pixel(0, 1.5*4/3 + 32),
+						scale = 0.5
+					},
+					{
 						filename = "__base__/graphics/entity/lab/lab-shadow.png",
+						frames = 1,
 						width = 242,
 						height = 136,
 						shift = util.by_pixel(13*4/3, 11*4/3),
