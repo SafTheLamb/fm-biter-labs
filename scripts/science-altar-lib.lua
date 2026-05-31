@@ -196,14 +196,16 @@ altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
 	if e.effect_id == "bitlab-tank-created" then
 		-- Make sure this wasn't spawned due to a legacy science altar
 		local surface = game.get_surface(e.surface_index)
-		if surface.find_entity("bitlab-altar", e.source_entity.position) then return end
-		local altar = surface.create_entity{
-			name = "bitlab-altar",
-			position = e.source_entity.position,
-			force = e.source_entity.force,
-			player = e.source_entity.last_user,
-			quality = e.source_entity.quality
-		}
+		local altar = surface.find_entity("bitlab-altar", e.source_entity.position)
+		if not altar then
+			altar = surface.create_entity{
+				name = "bitlab-altar",
+				position = e.source_entity.position,
+				force = e.source_entity.force,
+				player = e.source_entity.last_user,
+				quality = e.source_entity.quality
+			}
+		end
 		altar.destructible = false
 		storage.altar_objects[e.source_entity.unit_number] = {altar_id=altar.unit_number}
 		storage.altar_objects[altar.unit_number] = {tank_id=e.source_entity.unit_number}

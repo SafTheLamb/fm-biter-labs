@@ -32,6 +32,7 @@ data:extend({
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		flags = {"placeable-player", "player-creation", "get-by-unit-number"},
 		minable = {mining_time = 1, result = "bitlab-altar"},
+		placeable_by = {item="bitlab-altar", count=0},
 		is_military_target = true,
 		collision_mask = {layers = {}},
 		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
