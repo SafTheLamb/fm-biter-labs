@@ -1,0 +1,14 @@
+{
+	"item": [
+		["science-altar", "bitlab-altar"]
+	],
+	"recipe": [
+		["science-altar", "bitlab-altar"]
+	],
+	"entity": [
+		["science-altar", "bitlab-altar"]
+	],
+	"technology": [
+		["biter-labs-soul-scouter", "bitlab-soul-scouter"]
+	]
+}

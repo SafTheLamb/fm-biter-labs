@@ -5,7 +5,7 @@ local altar_lib = {
 	on_nth_tick = {}
 }
 
-------------------------------------------------------------------------------- Forces
+------------------------------------------------------------------------------- Initialization
 
 altar_lib.on_init = function()
 	storage.science_altars = {}
@@ -16,29 +16,58 @@ altar_lib.on_init = function()
 	end
 end
 
+-- migrations
+altar_lib.on_configuration_changed = function(e)
+	if e.mod_changes["biter-labs"] and helpers.compare_versions(e.mod_changes["biter-labs"].old_version, "0.3.0") < 0 then
+		local old_altar_storage = storage.science_altars
+		storage.science_altars = {}
+		storage.altar_objects = {}
+		storage.player_souls = {}
+
+		for player_id,player_data in pairs(old_altar_storage.players) do
+			storage.player_souls[player_id] = {
+				souls = player_data.souls
+			}
+		end
+
+		for _,surface in pairs(game.surfaces) do
+			altar_lib.init_surface(surface)
+			local altars = surface.find_entities_filtered({type="lab", name="bitlab-altar"})
+			for _,altar in pairs(altars) do
+				local altar_data = altar_lib.get_altar_data(altar)
+				local old_altar_data = old_altar_storage[altar.force.index]
+					and old_altar_storage[altar.force.index][altar.surface.index]
+					and old_altar_storage[altar.force.index][altar.surface.index][altar.unit_number] or nil
+				if altar_data and old_altar_data then
+					altar_data:add_souls(old_altar_data.souls)
+				end
+			end
+		end
+	end
+end
+
 ------------------------------------------------------------------------------- Surfaces
 
 function altar_lib.init_surface(surface)
 	local altars = surface.find_entities_filtered({type="lab", name="bitlab-altar"})
-	for _,altar in pairs(altars or {}) do
-		altar_lib.add_altar(altar)
+	for _,altar in pairs(altars) do
 		local tank = surface.find_entity("bitlab-tank", altar.position)
 		if not tank then
 			tank = surface.create_entity{
 				name = "bitlab-tank",
 				position = altar.position,
-				player = altar.player,
+				player = altar.last_user,
 				force = altar.force,
 				quality = altar.quality
 			}
 		end
 		altar.destructible = false
-		storage.science_altars[altar.unit_number] = {tank_id = tank.id}
-		storage.altar_objects[altar.unit_number] = {tank_id = tank.id}
-		storage.altar_objects[tank.unit_number] = {altar_id = altar.id}
+		storage.science_altars[altar.unit_number] = {tank_id = tank.unit_number}
+		storage.altar_objects[altar.unit_number] = {tank_id = tank.unit_number}
+		storage.altar_objects[tank.unit_number] = {altar_id = altar.unit_number}
 	end
 	local tanks = surface.find_entities_filtered({type="storage-tank", name="bitlab-tank"})
-	for _,tank in pairs(tanks or {}) do
+	for _,tank in pairs(tanks) do
 		assert(storage.altar_objects[tank.unit_number])
 	end
 end
