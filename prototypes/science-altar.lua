@@ -9,6 +9,7 @@ data:extend({
 		icon = "__biter-labs__/graphics/icons/science-altar.png",
 		subgroup = "production-machine",
 		order = "zb[science-altar]",
+		-- place the storage tank instead of the altar, so that it can be rotated
 		place_result = "bitlab-tank",
 		inventory_move_sound = item_sounds.lab_inventory_move,
 		pick_sound = item_sounds.lab_inventory_pickup,
@@ -35,8 +36,8 @@ data:extend({
 		placeable_by = {item="bitlab-altar", count=0},
 		is_military_target = true,
 		collision_mask = {layers = {}},
-		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
-		selection_box = {{-2, -2}, {2, 1}},
+		collision_box = {{-2.2, -2.2}, {2.2, 2.2}},
+		selection_box = {{-2.5, -2.5}, {2.5, 1}},
 		damaged_trigger_effect = hit_effects.entity(),
 		working_sound = {
 			sound = {
@@ -71,25 +72,25 @@ data:extend({
 		dying_explosion = "lab-explosion",
 		max_health = 250,
 		damaged_trigger_effect = hit_effects.entity(),
-		collision_box = {{-1.7, -1.7}, {1.7, 1.7}},
-		selection_box = {{-2, -2}, {2, 2}},
+		collision_box = {{-2.2, -2.2}, {2.2, 2.2}},
+		selection_box = {{-2.5, -2.5}, {2.5, 2.5}},
 		selection_priority = 49,
 		icon_draw_specification = {scale=0},
 		fluid_box = {
 			volume = 25000,
 			filter = "bitlab-souls",
 			pipe_covers = pipecoverspictures(),
+			pipe_picture = assembler2pipepictures(),
 			pipe_connections = {
-				{ direction = defines.direction.north, position = {-1.5, -1.5}},
-				{ direction = defines.direction.west, position = {-1.5, -1.5}},
-				{ direction = defines.direction.east, position = {1.5, 1.5}},
-				{ direction = defines.direction.south, position = {1.5, 1.5}},
-			},
-			hide_connection_info = true
+				{ direction = defines.direction.north, position = {-1, -2}},
+				{ direction = defines.direction.north, position = {1, -2}},
+				-- { direction = defines.direction.north, position = {-1.5, -1.5}},
+				-- { direction = defines.direction.west, position = {-1.5, -1.5}},
+				-- { direction = defines.direction.east, position = {1.5, 1.5}},
+				-- { direction = defines.direction.south, position = {1.5, 1.5}},
+			}
 		},
-		two_direction_only = true,
-		window_bounding_box = {{-0.125*4/3, 0.875*4/3}, {0.1875*4/3, 1.375*4/3}},
-		-- The item actually places science altar storage tank, so that it can be rotated
+		window_bounding_box = {{-0.125*5/3, 0.875*5/3}, {0.1875*5/3, 1.375*5/3}},
 		created_effect = {
 			type = "direct",
 			action_delivery = {
@@ -105,46 +106,30 @@ data:extend({
 			picture = {
 				sheets = {
 					{
-						filename = "__biter-labs__/graphics/entity/science-altar/top-patch.png",
-						frames = 2,
-						width = 256,
-						height = 120,
-						shift = util.by_pixel(0, 1.5*4/3 - 48),
-						scale = 0.5
-					},
-					{
 						filename = "__biter-labs__/graphics/entity/science-altar/science-altar.png",
 						frames = 1,
 						width = 196,
 						height = 219,
-						shift = util.by_pixel(0, 1.5*4/3),
-						scale = 2/3
-					},
-					{
-						filename = "__biter-labs__/graphics/entity/science-altar/bottom-patch.png",
-						frames = 2,
-						width = 264,
-						height = 128,
-						shift = util.by_pixel(0, 1.5*4/3 + 32),
-						scale = 0.5
+						shift = util.by_pixel(0, 1.5*5/3),
+						scale = 0.5*5/3
 					},
 					{
 						filename = "__base__/graphics/entity/lab/lab-shadow.png",
 						frames = 1,
 						width = 242,
 						height = 136,
-						shift = util.by_pixel(13*4/3, 11*4/3),
+						shift = util.by_pixel(13*5/3, 11*5/3),
 						draw_as_shadow = true,
-						scale = 2/3
+						scale = 0.5*5/3
 					},
 					{
-						filename = "__base__/graphics/entity/storage-tank/storage-tank-shadow.png",
+						filename = "__biter-labs__/graphics/entity/science-altar/science-altar-shadow.png",
 						priority = "extra-high",
-						frames = 2,
+						frames = 1,
 						width = 291,
 						height = 153,
-						shift = util.by_pixel(29.75, 22.25),
-						scale = 0.5,
+						shift = util.by_pixel(29.75*5/3, 22.25*5/3),
+						scale = 0.5*5/3,
 						draw_as_shadow = true
           			}
 				}
@@ -154,21 +139,21 @@ data:extend({
 				priority = "extra-high",
 				width = 32,
 				height = 15,
-				scale = 4/3
+				scale = 5/3
 			},
 			window_background = {
 				filename = "__base__/graphics/entity/storage-tank/window-background.png",
 				priority = "extra-high",
 				width = 34,
 				height = 48,
-				scale = 0.5*4/3
+				scale = 0.5*5/3
 			},
 			flow_sprite = {
 				filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
 				priority = "extra-high",
 				width = 160,
 				height = 20,
-				scale = 4/3
+				scale = 5/3
 			},
 			gas_flow = {
 				filename = "__base__/graphics/entity/pipe/steam.png",
@@ -178,7 +163,7 @@ data:extend({
 				height = 30,
 				frame_count = 60,
 				animation_speed = 0.25,
-				scale = 0.5*4/3
+				scale = 0.5*5/3
 			}
 		},
 		flow_length_in_ticks = 360,
@@ -188,10 +173,10 @@ data:extend({
 			max_sounds_per_prototype = 3
 		},
 		circuit_connector = circuit_connector_definitions.create_vector(universal_connector_template, {
-			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
-			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
-			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true },
-			{ variation = 25, main_offset = util.by_pixel(-36.625,  31.5), shadow_offset = util.by_pixel(-36.625,  31.5), show_shadow = true }
+			{ variation = 25, main_offset = util.by_pixel(-36.625*5/4,  31.5*5/4), shadow_offset = util.by_pixel(-6.625*5/4,  45.5*5/4), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625*5/4,  31.5*5/4), shadow_offset = util.by_pixel(-6.625*5/4,  45.5*5/4), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625*5/4,  31.5*5/4), shadow_offset = util.by_pixel(-6.625*5/4,  45.5*5/4), show_shadow = true },
+			{ variation = 25, main_offset = util.by_pixel(-36.625*5/4,  31.5*5/4), shadow_offset = util.by_pixel(-6.625*5/4,  45.5*5/4), show_shadow = true }
 		}),
 		circuit_wire_max_distance = default_circuit_wire_max_distance,
 		water_reflection = {
@@ -201,9 +186,9 @@ data:extend({
 				priority = "extra-high",
 				width = 24,
 				height = 24,
-				shift = util.by_pixel(5*4/3, 35*4/3),
+				shift = util.by_pixel(5*5/3, 35*5/3),
 				variation_count = 1,
-				scale = 5*4/3
+				scale = 5*5/3
 			},
 			rotate = false,
 			orientation_to_variation = false

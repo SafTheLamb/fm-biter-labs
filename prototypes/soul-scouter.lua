@@ -18,7 +18,7 @@ data:extend({
 			cursor_box_type = "entity",
 			mode = {"friend", "entity-with-health"},
 			entity_filter_mode = "whitelist",
-			entity_filters = {"character", "bitlab-altar"},
+			entity_filters = {"character", "bitlab-tank"},
 			ended_sound = "__core__/sound/smart-pipette.ogg"
 		},
 		open_sound = {filename="__base__/sound/item-open.ogg", volume=1},
