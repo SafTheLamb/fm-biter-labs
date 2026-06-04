@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.0
+Date: 2026-05-17
+  Features:
+    - Souls are now a fluid!
+    - Souls stored in science altars from old versions will be converted and preserved (up to 25k).
+  Changes:
+    - Increased the size of science altars to 5x5 (from 4x4). This is to accommodate for the new pipe connections.
+    - Pre-existing science altars in pre-0.3.0 saves will not check for collision upon being resized.
+    - Make space for them if you so choose, or enjoy the janky setup exclusive to these legacy saves.
+  Graphics:
+    - Science altar graphics have been updated. Still WIP.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2026-05-17
   Features:

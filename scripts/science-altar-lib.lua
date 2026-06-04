@@ -53,6 +53,8 @@ function altar_lib.init_surface(surface)
 	for _,altar in pairs(altars) do
 		local tank = surface.find_entity("bitlab-tank", altar.position)
 		if not tank then
+			-- Make sure the altar is snapped to the grid
+			altar.teleport(altar.position, nil, false, true)
 			tank = surface.create_entity{
 				name = "bitlab-tank",
 				position = altar.position,
