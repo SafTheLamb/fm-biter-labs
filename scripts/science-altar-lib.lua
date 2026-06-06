@@ -221,6 +221,38 @@ altar_lib.events[defines.events.on_script_trigger_effect] = function(e)
 	end
 end
 
+function altar_lib.on_pre_mined_tank(tank, entity, dst_type)
+	local dst_inventory = (dst_type == defines.inventory.character_main) and entity.get_main_inventory() or entity.get_inventory(dst_type)
+	assert(dst_inventory)
+	local lab = game.get_entity_by_unit_number(storage.altar_objects[tank.unit_number].altar_id)
+	for _,inventory_type in pairs({
+		defines.inventory.lab_input,
+		defines.inventory.lab_modules,
+		defines.inventory.lab_trash
+	}) do
+		local src_inventory = lab.get_inventory(inventory_type)
+		assert(src_inventory)
+		for i=1,#src_inventory do
+			local item_stack = src_inventory[i]
+			if item_stack.count > 0 then
+				local moved_count = dst_inventory.insert(item_stack)
+				if moved_count > 0 and entity.is_player() then
+					entity.create_local_flying_text{
+						text={"", "+"..moved_count.." [item="..item_stack.name.."] ", item_stack.prototype.localised_name, " ("..entity.get_item_count(item_stack.name)..")"},
+						position=tank.position,
+						time_to_live = 150
+					}
+				end
+				if moved_count < item_stack.count then
+					src_inventory[i].count = src_inventory[i].count - moved_count
+					return
+				end
+				src_inventory.remove(item_stack)
+			end
+		end
+	end
+end
+
 altar_lib.events[defines.events.on_object_destroyed] = function(e)
 	if e.type ~= defines.target_type.entity then return end
 	local object_data = storage.altar_objects[e.useful_id]

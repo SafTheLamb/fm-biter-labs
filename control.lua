@@ -73,3 +73,13 @@ script.on_event(defines.events.on_entity_died, on_entity_died, {
 	{filter="type", type="car"},
 	{filter="type", type="fish"}
 })
+
+script.on_event(defines.events.on_pre_player_mined_item, function(e)
+	altar_lib.on_pre_mined_tank(e.entity, game.get_player(e.player_index), defines.inventory.character_main)
+end, {{filter="name", name="bitlab-tank"}})
+script.on_event(defines.events.on_robot_pre_mined, function(e)
+	altar_lib.on_pre_mined_tank(e.entity, e.robot, defines.inventory.robot_cargo)
+end, {{filter="name", name="bitlab-tank"}})
+script.on_event(defines.events.on_space_platform_pre_mined, function(e)
+	altar_lib.on_pre_mined_tank(e.entity, e.platform.hub, defines.inventory.hub_main)
+end, {{filter="name", name="bitlab-tank"}})
