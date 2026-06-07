@@ -163,7 +163,7 @@ function tq_lib.get_random_tech_index(altar)
 	for set_ingredients,queue_set in pairs(tech_queue.queue_sets) do
 		local ingredients = util.split(set_ingredients, ',')
 		for _,ingredient_name in pairs(ingredients) do
-			if altar.get_item_count(ingredient_name) == 0 then
+			if altar.get_item_count({name=ingredient_name}) == 0 then
 				goto continue
 			end
 		end

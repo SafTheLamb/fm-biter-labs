@@ -8,6 +8,7 @@ local altar_lib = {
 ------------------------------------------------------------------------------- Initialization
 
 altar_lib.on_init = function()
+	altar_lib.setup_altar_inputs()
 	storage.science_altars = {}
 	storage.altar_objects = {}
 	storage.player_souls = {}
@@ -18,6 +19,7 @@ end
 
 -- migrations
 altar_lib.on_configuration_changed = function(e)
+	altar_lib.setup_altar_inputs()
 	if e.mod_changes["biter-labs"] and helpers.compare_versions(e.mod_changes["biter-labs"].old_version, "0.3.0") < 0 then
 		local old_altar_storage = storage.science_altars
 		storage.science_altars = {}
@@ -43,6 +45,14 @@ altar_lib.on_configuration_changed = function(e)
 				end
 			end
 		end
+	end
+end
+
+function altar_lib.setup_altar_inputs()
+	storage.altar_inputs = {}
+	local altar = prototypes.entity["bitlab-altar"]
+	for index,name in pairs(altar.lab_inputs) do
+		storage.altar_inputs[name] = index
 	end
 end
 
@@ -291,11 +301,15 @@ function altar_lib.update_altar(altar, altar_data)
 		end
 		tech_blips = math.max(tech_blips, 0.01)
 		blips = blips * (10*second / tech.research_unit_energy)
-
 		if blips >= tech_blips then
+			local inventory = altar.get_inventory(defines.inventory.lab_input)
 			local unit_amount = blips / tech_blips
+
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
-				unit_amount = math.min(unit_amount, altar.get_item_count(ingredient.name) / ingredient.amount)
+				local stack = inventory[storage.altar_inputs[ingredient.name]]
+				local value = (stack.count - 1) * stack.quality.tool_durability_multiplier + stack.durability
+				-- local stack = inventory.find_item_stack()
+				unit_amount = math.min(unit_amount, value / ingredient.amount)
 			end
 			unit_amount = math.floor(unit_amount)
 			if unit_amount == 0 then return end
@@ -310,7 +324,18 @@ function altar_lib.update_altar(altar, altar_data)
 			tech_data.souls = tech_data.souls + souls_used
 
 			for _,ingredient in pairs(tech.research_unit_ingredients) do
-				altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
+				local stack = inventory[storage.altar_inputs[ingredient.name]]
+				assert(stack.count > 0)
+				local cost = unit_amount * ingredient.amount
+				local value = (stack.count - 1) * stack.quality.tool_durability_multiplier + stack.durability - cost
+				local mod = value % stack.quality.tool_durability_multiplier
+				if value > 0 then
+					stack.count = math.ceil(value / stack.quality.tool_durability_multiplier)
+					stack.durability = mod > 0 and mod or stack.quality.tool_durability_multiplier
+				else
+					stack.clear()
+				end
+				-- altar.remove_item({name=ingredient.name, amount=unit_amount * ingredient.amount})
 			end
 			return true
 		end
